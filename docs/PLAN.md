@@ -5,7 +5,7 @@
 |---|---|
 | **เวอร์ชันเอกสาร** | 1.0 |
 | **วันที่** | 4 สิงหาคม 2569 |
-| **สถานะ** | Phase 2 (Fishbone + Logic Model + Template) เสร็จ MVP แล้ว — ดูบันทึกสถานะท้ายเอกสาร |
+| **สถานะ** | Phase 3 (Polish & Present) เสร็จ MVP แล้ว — ดูบันทึกสถานะท้ายเอกสาร |
 | **ชื่อโครงการ** | Diagram+ (ชื่อชั่วคราว ตั้งให้สอดคล้องแบรนด์ AUDIT+ — เปลี่ยนได้) |
 
 ---
@@ -268,7 +268,27 @@ Phase ที่หนักที่สุดเพราะสร้างร�
 - ฟอนต์ Sarabun จริง — ยังพึ่ง fallback เหมือน Phase 1 เลื่อนไป Phase 3
 - สีธีม Navy/Gold ยังเป็น placeholder
 
-**Session ถัดไปเริ่มได้ทันทีจาก:** Phase 3 — Polish & Present (export PDF, ธีมพิมพ์, presentation mode, outline panel, ค้นหา, HTML interactive export)
+### 2026-08-04 (ต่อ) — Phase 3 (Polish & Present)
+
+เสร็จ MVP แล้ว ทดสอบผ่าน local dev server ทุกฟีเจอร์ (ธีมพิมพ์ทดสอบแล้วตั้งแต่ Phase 1 อยู่แล้ว ยืนยันซ้ำอีกครั้งท้าย Phase นี้ว่ายังทำงานถูกต้อง)
+
+สิ่งที่ทำและทดสอบผ่านแล้ว:
+- **Export PDF** (`src/export/pdf.js`): **ตัดสินใจสำคัญ** — เขียน PDF byte เองแบบ minimal แทนใช้ library เพราะกติกาโปรเจกต์อนุญาตแค่ d3-flextree เป็น dependency เดียว วิธีทำ: ดึง raw RGB pixel จาก canvas แล้วบีบอัดด้วย `CompressionStream('deflate')` ของเบราว์เซอร์ตรงๆ (native API ไม่ต้องเขียนตัวบีบอัดเอง) ใส่เป็น PDF Image XObject `/FlateDecode` — ได้คุณภาพ lossless เทียบเท่า PNG โดยไม่ต้องเขียน PNG chunk format เอง ตรวจสอบไฟล์ที่ได้ระดับไบต์แล้ว: xref offset ทุกตัวชี้ตำแหน่ง object ถูกต้อง, stream length ตรงกับข้อมูลจริง, decompress กลับมาได้ขนาดตรงกับ width×height×3 พอดี — มั่นใจว่าเปิดได้จริงในทุก PDF viewer มาตรฐาน
+- **โหมดนำเสนอ**: fullscreen API + ซ่อน toolbar/outline ด้วย CSS class, `canvas.animateTransformTo()`/`centerOnNode()` ใหม่ใน canvas.js ทำ zoom นุ่มนวลด้วย requestAnimationFrame + easeOutCubic ทุกครั้งที่เปลี่ยน selection ระหว่างนำเสนอ, Escape ออก (sync กับ fullscreenchange event ด้วยเผื่อผู้ใช้กด Esc ของเบราว์เซอร์เอง) — Space พับ/กางที่มีอยู่แล้วใช้เป็นจังหวะเปิดเผยเนื้อหาได้ตามที่ plan ต้องการโดยไม่ต้องเขียนเพิ่ม
+- **Outline panel** (`src/ui/outline.js`): panel ฝั่งขวา ซิงก์สองทางกับ store/selection จริง (แก้ข้อความใน outline → canvas อัปเดตทันที และกลับกัน) ใช้ได้เฉพาะ mindmap/fishbone (tree-based) — logicmodel แสดงข้อความแจ้งแทน เพราะโครงสร้างคอลัมน์ไม่ใช่ tree ที่ทำ outline ได้ตรงไปตรงมา + export/import markdown indent list ทดสอบ round-trip แล้วได้ข้อความเหมือนเดิมทุกตัวอักษร
+- **ค้นหา** (`showSearchDialog` ใน dialogs.js): ค้นข้อความใน `doc.nodes` ทุกตัวแบบ live filter ตอนพิมพ์ เลือกผลลัพธ์แล้ว select+centerOnNode ไปหาทันที
+- **Export HTML interactive** (`src/export/html-export.js`): **ตัดสินใจสำคัญ** — แทนที่จะเขียน viewer logic ซ้ำอีกชุด ใช้วิธี fetch source ไฟล์จริงที่แอปใช้อยู่ (`store.js`, `shared.js`, diagram module ของ type ปัจจุบัน) มาตัด `import`/`export` syntax ออกด้วย regex ง่ายๆ แล้วต่อกันเป็น `<script>` เดียว — แหล่งความจริงมีชุดเดียว ไม่ต้อง maintain โค้ดซ้ำสองที่ mindmap ต้องฝัง d3-flextree UMD build เพิ่ม (fetch จาก CDN ตอน export ครั้งเดียว, ฝังลงไฟล์ผลลัพธ์เพื่อให้ทำงาน offline 100% ไม่ต้องพึ่ง CDN อีกตอนเปิดดู) ไฟล์ผลลัพธ์เป็น view-only (pan/zoom/พับกิ่งได้ แก้ไขไม่ได้) ทดสอบโดยโหลดเข้า iframe แยก origin (จำลองการเปิดไฟล์อิสระ) ทั้ง 3 ชนิดแผนผังแล้วทำงานถูกต้องครบ
+
+สิ่งที่ยังไม่ทำ (เกินสโคป Phase 3 หรือเป็น option):
+- แชร์เป็นลิงก์ฝังข้อมูลใน URL (option ในแผน — ยังไม่ทำ)
+- Vector PDF (ตัวอักษรจริงแทนภาพ) — ตามแผนเดิมที่บอกว่าทำทีหลังถ้าจำเป็น เส้นทางหลัก PNG-in-PDF ใช้งานได้ดีแล้ว
+- ฟอนต์ Sarabun จริง (ยัง fallback ฟอนต์ระบบเหมือนเดิมทุก Phase ที่ผ่านมา) — ตอนนี้ยังไม่กระทบคุณภาพงานเพราะ fallback ให้ Thai glyph ถูกต้องอยู่แล้ว แค่ไม่ใช่ฟอนต์แบรนด์ที่ต้องการเป๊ะ
+
+**เกณฑ์ตรวจรับ Phase 3 ผ่านครบ:** PDF export ได้ไฟล์ที่ตรวจสอบ byte-level แล้วถูกต้อง (จะเปิดได้จริงใน PDF viewer มาตรฐาน) • โหมดนำเสนอ fullscreen+zoom นุ่มนวลทำงาน • outline สองทางสมบูรณ์ + markdown round-trip lossless • ค้นหาทำงานถูกต้อง • HTML export เปิดได้อิสระไม่พึ่ง app/เน็ต ทดสอบยืนยันด้วย iframe แยก origin
+
+**เครื่องมือ:** ยังใช้เทคนิคเดิมจาก Phase 2 (cache-busted dynamic import `?bust=timestamp`) เมื่อ live page cache โค้ดเก่าค้าง — จำเป็นบ่อยขึ้นเพราะแก้ไฟล์ถี่มากใน Phase นี้
+
+**Session ถัดไป:** Phase 3 คือ Phase สุดท้ายตามแผนเดิม (ไม่รวม Phase 4 AI Assist ซึ่งเป็น option) — โปรเจกต์อยู่ในสถานะ MVP ครบทุก Phase หลักแล้ว งานที่เหลือคือ: (1) deploy GitHub Pages จริง (ยังไม่ทำตั้งแต่ Phase 0 — รอชื่อ repo จากผู้ใช้), (2) แทนที่สี placeholder ด้วยค่าจริงจาก AUDIT+, (3) ฝังฟอนต์ Sarabun จริงถ้าต้องการ, (4) ทดสอบกับผู้ใช้จริง (ระดมสมองในที่ประชุมทีมตรวจ) ตามเกณฑ์ความสำเร็จข้อ 9 ของแผน, (5) พิจารณา Phase 4 AI Assist ถ้าต้องการ
 
 ---
 
