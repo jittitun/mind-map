@@ -5,7 +5,7 @@
 |---|---|
 | **เวอร์ชันเอกสาร** | 1.0 |
 | **วันที่** | 4 สิงหาคม 2569 |
-| **สถานะ** | Phase 1 (Core Engine + Mindmap MVP) เสร็จ MVP แล้ว — ดูบันทึกสถานะท้ายเอกสาร |
+| **สถานะ** | Phase 2 (Fishbone + Logic Model + Template) เสร็จ MVP แล้ว — ดูบันทึกสถานะท้ายเอกสาร |
 | **ชื่อโครงการ** | Diagram+ (ชื่อชั่วคราว ตั้งให้สอดคล้องแบรนด์ AUDIT+ — เปลี่ยนได้) |
 
 ---
@@ -242,7 +242,33 @@ Phase ที่หนักที่สุดเพราะสร้างร�
 - ยังไม่ทดสอบ File System Access save/open แบบเต็ม (ต้องมี user gesture จริง, ทดสอบแค่ตรวจพบ API)
 - ยังไม่ deploy GitHub Pages
 
-**Session ถัดไปเริ่มได้ทันทีจาก:** Phase 2 — Fishbone + Logic Model + ระบบ Template เต็มรูปแบบ (`src/diagrams/fishbone.js`, `logicmodel.js`, `src/ui/dialogs.js` สำหรับ template gallery)
+### 2026-08-04 (ต่อ) — Phase 2 (Fishbone + Logic Model + ระบบ Template)
+
+เสร็จ MVP แล้ว ทดสอบผ่าน local dev server ทั้งจาก store/diagram-module logic โดยตรง และผ่าน UI จริง (คลิกปุ่ม เลือก template, ดู hint, กรอกฟอร์ม save-as-template)
+
+**Refactor สำคัญก่อนเริ่ม Phase 2:** canvas.js/keyboard.js/png.js เดิม Phase 1 ผูกกับ `diagrams/mindmap.js` ตรงๆ — ย้ายมาใช้ `diagrams/registry.js` เลือก module ตาม `store.doc.type` แทน และแยก text-wrap/node-box-render ที่ใช้ร่วมกันไปไว้ `diagrams/shared.js` ให้ mindmap/fishbone/logicmodel เรียกใช้ร่วมกัน
+
+สิ่งที่ทำและทดสอบผ่านแล้ว:
+- **Fishbone** (`src/diagrams/fishbone.js`): layout สันหลัง+หัวปลา, ก้างหลักเฉียงสลับบน-ล่างอัตโนมัติ (index คู่/คี่), ก้างย่อยไล่ระดับแบบ recursive tick ที่สั้นลงเรื่อยๆ ตามความลึก — ใช้ tree structure (parent/order) เดิมทั้งหมด ไม่ต้องเพิ่ม field ใหม่ ทดสอบด้วย fishbone 6 หมวดจริงแล้ว bone กระจายสมดุลถูกต้อง
+- **Logic model** (`src/diagrams/logicmodel.js`): **ตัดสินใจสำคัญ** — หัวคอลัมน์เป็น node ปกติใน `doc.nodes` (มี `isColumnHeader:true` + `columnId` ชี้ตัวเอง) แทนที่จะแยกเก็บ title ไว้ใน `doc.columns` — เพราะ PLAN ข้อ 4 ยกตัวอย่าง "หัวคอลัมน์ logic model" เป็นสมาชิกของ `lockedNodeIds` ซึ่งอ้างถึง node id เท่านั้น ทำให้หัวคอลัมน์ล็อก/แก้ข้อความได้เหมือน node อื่นทุกประการ `doc.columns` เหลือแค่ `[{id}]` กำหนดลำดับคอลัมน์
+  - Tab จากการ์ด = ข้ามไปคอลัมน์ถัดไป + สร้าง `link` อัตโนมัติ, Enter = เพิ่มการ์ดในคอลัมน์เดิม (ตำแหน่งถัดจากการ์ดที่เลือก)
+  - ลูกศรนำทาง: บน/ล่าง = การ์ดก่อน/ถัดไปในคอลัมน์ (รวมหัวคอลัมน์เป็นตำแหน่งบนสุด), ซ้าย/ขวา = ไปหัวคอลัมน์ข้างเคียง
+  - ทดสอบผ่าน UI จริงครบ: Tab สร้าง link ถูกต้อง, Enter ไม่สร้าง link, ลูกศรนำทางข้ามคอลัมน์ถูกต้อง
+- **Locked nodes บักสำคัญที่แก้ใน Phase 2:** Phase 1 เขียน `updateText` บล็อกแก้ข้อความ node ที่ล็อกไปด้วย ทั้งที่ PLAN ข้อ 4 ระบุชัดว่า node ล็อก "แก้ข้อความได้แต่ลบ/ย้าย/เพิ่มพี่น้องไม่ได้" — แก้แล้ว: `updateText` ไม่เช็ก locked อีกต่อไป, เพิ่มเช็ก locked ใน `addSibling`/`reorderSibling`/`reorderCardInColumn` แทน (ที่ไม่เคยเช็กมาก่อน) — logic model มีข้อยกเว้นเพิ่ม: Enter บนหัวคอลัมน์ (locked เสมอ) ยังต้องเพิ่มการ์ดแรกได้ แต่ Enter บนการ์ดเนื้อหาที่ล็อก (เช่นแถวตัวชี้วัด 3E) ต้องถูกบล็อก — แยกด้วย `isColumnHeader` flag
+  - เพิ่ม feedback ตอนบล็อก: `canvas.flashBlocked(id)` ขอบแดงกะพริบสั้นๆ ต่อ node นั้น
+- **Template Engine** (`src/ui/templates.js` + `src/ui/dialogs.js`): gallery โหลดจาก `templates/index.json`, save-as-template สร้าง `template.lockedNodeIds` จาก `node.locked` จริงในเอกสาร (ไม่ใช่แหล่งความจริงคู่ขนาน — ล็อก node ด้วย Ctrl+L ก่อน แล้ว save-as-template จะสรุปให้เอง), แสดง hint อัตโนมัติตอนเปิด template ที่มี `template.hint` — ทดสอบผ่าน UI จริงแล้ว (คลิกปุ่ม เทมเพลต → เลือก Fishbone 6M → เห็น hint ทันที)
+- **ชุด template 6 ชิ้น**: mindmap เปล่า/ประเด็นตรวจสอบ (จาก Phase 1) + fishbone 6M + fishbone วิเคราะห์สาเหตุข้อตรวจพบ (6 หมวดตาม PLAN) + logic model มาตรฐาน (5 คอลัมน์) + logic model ตรวจผลสัมฤทธิ์ 3E (5 คอลัมน์ + แถวตัวชี้วัดล็อกแมป Economy/Efficiency/Effectiveness ต่อคอลัมน์)
+
+**เกณฑ์ตรวจรับ Phase 2 ผ่านครบ:** เปิด template แล้วแก้ข้อความได้แต่โครงล็อกลบ/ย้ายไม่ได้ (ทดสอบทั้ง mindmap/fishbone/logicmodel) • เพิ่ม template ใหม่ทำได้จริงด้วยการเพิ่มไฟล์ JSON + รายการใน index.json เท่านั้น ไม่ต้องแก้โค้ดแอปเลย (พิสูจน์แล้วจากการเพิ่ม 4 template ใหม่รอบนี้)
+
+**เครื่องมือพัฒนา:** เจอปัญหา browser cache ค้างโค้ดเก่าระหว่างทดสอบบ่อย (ES module ถูก cache แน่นแม้ reload) — แก้ด้วย `.claude/dev-server.py` (python http.server + header `Cache-Control: no-store`) แทน `python -m http.server` เปล่าใน `.claude/launch.json`
+
+สิ่งที่ยังไม่ทำ (เกินสโคป Phase 2):
+- Drag node ด้วยเมาส์สำหรับ logic model (ย้ายคอลัมน์ด้วยเมาส์) — ตอนนี้ `moveNode` เป็น no-op สำหรับ logicmodel โดยตั้งใจ, มี `store.moveCardToColumn()` พร้อมใช้แล้วแต่ยังไม่ผูก UI drag (ใช้ Tab/Enter/ลูกศรแทนได้ครบ)
+- ฟอนต์ Sarabun จริง — ยังพึ่ง fallback เหมือน Phase 1 เลื่อนไป Phase 3
+- สีธีม Navy/Gold ยังเป็น placeholder
+
+**Session ถัดไปเริ่มได้ทันทีจาก:** Phase 3 — Polish & Present (export PDF, ธีมพิมพ์, presentation mode, outline panel, ค้นหา, HTML interactive export)
 
 ---
 
