@@ -1,5 +1,6 @@
-// Editor Core: canvas (pan/zoom), selection, drag-to-reparent — ใช้ร่วมกันทุกชนิดแผนผัง
+// Editor Core: canvas (pan/zoom), selection, drag — ใช้ร่วมกันทุกชนิดแผนผัง
 // เลือก diagram module ตาม store.doc.type ผ่าน registry — ไม่ผูกกับชนิดแผนผังใดโดยเฉพาะ
+// การ drop หมายถึงอะไร (reparent/link/reorder) ให้ diagram module ตัดสินใจผ่าน onDrop()
 
 import { getDiagramModule } from '../diagrams/registry.js';
 
@@ -11,7 +12,7 @@ export class Canvas {
     this.container = container;
     this.store = store;
     this.selection = selection;
-    this.actions = actions; // { moveNode(id, parentId), startEdit(id) }
+    this.actions = actions; // { startEdit(id) }
     this.transform = { x: 60, y: 160, k: 1 }; // เผื่อระยะให้พ้น toolbar ลอยมุมบน (แม้ตอน wrap 2 แถวบนจอแคบ)
     this.lastPositions = new Map();
     this.diagram = getDiagramModule(store.doc.type);
@@ -134,7 +135,11 @@ export class Canvas {
 
     this.svg.addEventListener('mousedown', (e) => {
       const nodeEl = e.target.closest('.dp-node');
-      if (!nodeEl || e.target.closest('.dp-toggle') || this.selection.editingId) return;
+      if (!nodeEl || e.target.closest('.dp-toggle')) return;
+      if (this.selection.editingId) {
+        if (nodeEl.dataset.id === this.selection.editingId) return; // กำลังพิมพ์อยู่ในกล่องนี้ ปล่อยวางเคอร์เซอร์/เลือกข้อความตามปกติ
+        this.nodesLayer.querySelector('.dp-node-edit')?.blur(); // คลิกโหนดอื่นระหว่างแก้ไข — commit ข้อความเดิมก่อนสลับ
+      }
       e.stopPropagation();
       dragId = nodeEl.dataset.id;
       dragging = false;
@@ -171,7 +176,7 @@ export class Canvas {
         draggedEl?.classList.remove('is-dragging');
         dropTargetEl?.classList.remove('is-drop-target');
         dropTargetEl = null;
-        if (targetId && !this.actions.moveNode(dragId, targetId)) this.flashBlocked(dragId);
+        if (targetId && !this.diagram.onDrop(this.store, dragId, targetId)) this.flashBlocked(dragId);
         this.render();
       } else {
         this.selection.select(dragId);

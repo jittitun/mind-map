@@ -33,11 +33,16 @@ export function reorder(store, id, direction) {
   store.reorderSibling(id, direction);
 }
 
+export function onDrop(store, draggedId, targetId) {
+  return store.moveNode(draggedId, targetId);
+}
+
 const MAIN_BONE_LENGTH = 130;
 const SUB_LENGTH_DECAY = 0.62; // ก้างย่อยแต่ละชั้นสั้นลงเรื่อยๆ
 const MIN_SUB_LENGTH = 40;
-const SUB_ANGLE = (58 * Math.PI) / 180; // มุมของก้างย่อยเทียบกับก้างพ่อ สลับข้างตาม order
+const SUB_ANGLE = (90 * Math.PI) / 180; // มุมของก้างย่อยเทียบกับก้างพ่อ (ตั้งฉาก กันแกว่งเข้าหากล่องปลายก้างพ่อ) สลับข้างตาม order
 const BONE_SPACING = 100; // ระยะห่างจุดเกาะก้างหลักบนสันหลัง
+const MIN_CHILD_SPACING = 62; // ระยะขั้นต่ำระหว่างจุดเกาะก้างย่อยตามแนวก้างพ่อ กันกล่องซ้อนทับกันเมื่อลูกเยอะ
 
 function rotate(vx, vy, angle) {
   const cos = Math.cos(angle);
@@ -53,9 +58,34 @@ function normalize(vx, vy) {
 export function computeLayout(store) {
   const rootId = store.getRootId();
   const positions = new Map();
+  const boneLengths = new Map();
+
+  // Pass 1 (bottom-up): วัดความยาวก้างที่แต่ละ node ต้องการ — ถ้ามีลูกเยอะ ก้างต้องยาวพอให้จุดเกาะห่างกันพอ
+  // ไม่งั้นกล่องลูกที่ตำแหน่งเรียงชิดกันจะซ้อนทับกัน (บั๊กเดิม: ความยาวคงที่ไม่สนใจจำนวนลูก)
+  function measureLength(id, level) {
+    const node = store.getNode(id);
+    // เผื่อความยาวเพิ่มตามขนาดกล่องของตัวเอง (กล่องอยู่ที่ปลายก้าง ป้ายยาวๆ ต้องการก้างยาวขึ้นด้วย)
+    const ownSize = measureNodeBox(node.text);
+    const ownHalfSpan = Math.max(ownSize.width, ownSize.height) / 2;
+    const decayBase = level === 0 ? MAIN_BONE_LENGTH : Math.max(MIN_SUB_LENGTH, MAIN_BONE_LENGTH * SUB_LENGTH_DECAY ** level);
+    const baseLength = decayBase + ownHalfSpan;
+    const children = node.collapsed ? [] : store.getChildren(id);
+    if (children.length === 0) {
+      boneLengths.set(id, baseLength);
+      return;
+    }
+    const requiredForChildren = (children.length + 1) * MIN_CHILD_SPACING + ownHalfSpan;
+    boneLengths.set(id, Math.max(baseLength, requiredForChildren));
+    for (const childId of children) measureLength(childId, level + 1);
+  }
 
   const mainBones = store.getNode(rootId).collapsed ? [] : store.getChildren(rootId);
-  const spineLength = Math.max(320, (mainBones.length + 1) * BONE_SPACING);
+  for (const boneId of mainBones) measureLength(boneId, 0);
+
+  // ก้างหลักยิ่งยาว (ลูกเยอะ/ป้ายยาว) ยิ่งต้องเว้นระยะบนสันหลังให้ห่างขึ้น กันก้างข้างเคียงกวาดมาทับกัน
+  const maxMainBoneLength = mainBones.reduce((max, id) => Math.max(max, boneLengths.get(id)), MAIN_BONE_LENGTH);
+  const boneSpacing = Math.max(BONE_SPACING, maxMainBoneLength * 0.65);
+  const spineLength = Math.max(320, (mainBones.length + 1) * boneSpacing);
   const headSize = measureNodeBox(store.getNode(rootId).text);
 
   positions.set(rootId, {
@@ -70,7 +100,9 @@ export function computeLayout(store) {
     isHead: true,
   });
 
-  function placeBone(id, attachX, attachY, dirX, dirY, length) {
+  // Pass 2 (top-down): วางตำแหน่งจริงโดยอ่านความยาวจาก Pass 1
+  function placeBone(id, attachX, attachY, dirX, dirY) {
+    const length = boneLengths.get(id);
     const [ux, uy] = normalize(dirX, dirY);
     const tipX = attachX + ux * length;
     const tipY = attachY + uy * length;
@@ -91,22 +123,22 @@ export function computeLayout(store) {
       tip: { x: tipX, y: tipY },
     });
 
-    const nextLength = Math.max(MIN_SUB_LENGTH, length * SUB_LENGTH_DECAY);
     const n = children.length;
+    const TIP_MARGIN = 0.12; // เว้นระยะไม่ให้จุดเกาะลูกใกล้ปลายก้างเกินไป กันชนกับกล่องของ node นี้เองที่อยู่ปลายก้าง
     children.forEach((childId, i) => {
-      const t = (i + 1) / (n + 1);
+      const t = TIP_MARGIN + ((i + 1) / (n + 1)) * (1 - 2 * TIP_MARGIN);
       const childAttachX = attachX + (tipX - attachX) * t;
       const childAttachY = attachY + (tipY - attachY) * t;
       const side = i % 2 === 0 ? 1 : -1;
       const [rx, ry] = rotate(ux, uy, side * SUB_ANGLE);
-      placeBone(childId, childAttachX, childAttachY, rx, ry, nextLength);
+      placeBone(childId, childAttachX, childAttachY, rx, ry);
     });
   }
 
   mainBones.forEach((boneId, i) => {
-    const attachX = (i + 1) * BONE_SPACING;
+    const attachX = (i + 1) * boneSpacing;
     const top = i % 2 === 0; // สลับบน-ล่างให้สมดุล
-    placeBone(boneId, attachX, 0, -1, top ? -0.7 : 0.7, MAIN_BONE_LENGTH);
+    placeBone(boneId, attachX, 0, -1, top ? -0.7 : 0.7);
   });
 
   return positions;

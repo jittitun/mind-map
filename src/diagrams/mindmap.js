@@ -37,6 +37,10 @@ export function reorder(store, id, direction) {
   store.reorderSibling(id, direction);
 }
 
+export function onDrop(store, draggedId, targetId) {
+  return store.moveNode(draggedId, targetId);
+}
+
 export function computeLayout(store) {
   const rootId = store.getRootId();
   const sizeCache = new Map();

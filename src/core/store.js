@@ -239,6 +239,18 @@ export class DocumentStore extends EventTarget {
     return true;
   }
 
+  // ลากการ์ดไปวางใกล้การ์ดอื่นในคอลัมน์เดียวกัน — ย้ายให้ไปอยู่ติดกับ targetId (ก่อน/หลังตาม order เดิม)
+  moveCardWithinColumn(id, targetId) {
+    const n = this.doc.nodes[id];
+    const t = this.doc.nodes[targetId];
+    if (!n || !t || n.locked || n.isColumnHeader || id === targetId) return false;
+    if (n.columnId !== t.columnId) return false;
+    n.order = t.order + (n.order < t.order ? 0.5 : -0.5);
+    this._normalizeColumnOrder(n.columnId);
+    this._commit();
+    return true;
+  }
+
   reorderCardInColumn(id, direction) {
     const n = this.doc.nodes[id];
     if (!n || n.locked) return;

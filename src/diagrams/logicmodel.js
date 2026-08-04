@@ -151,3 +151,15 @@ export function navigate(store, id, direction) {
 export function reorder(store, id, direction) {
   store.reorderCardInColumn(id, direction);
 }
+
+// ลากการ์ดไปวางบนการ์ดอื่น: คอลัมน์เดียวกัน = จัดลำดับบน-ล่าง, ต่างคอลัมน์ = สร้าง link เชื่อม
+export function onDrop(store, draggedId, targetId) {
+  const draggedNode = store.getNode(draggedId);
+  const targetNode = store.getNode(targetId);
+  if (!draggedNode || !targetNode || draggedNode.isColumnHeader || draggedId === targetId) return false;
+  if (draggedNode.columnId === targetNode.columnId) {
+    return store.moveCardWithinColumn(draggedId, targetId);
+  }
+  if (targetNode.isColumnHeader) return false; // ลากไปวางบนหัวคอลัมน์ ไม่ทำอะไร
+  return !!store.addLink(draggedId, targetId);
+}
