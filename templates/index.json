@@ -1,0 +1,18 @@
+{
+  "templates": [
+    {
+      "id": "mindmap-empty",
+      "type": "mindmap",
+      "name": "Mindmap เปล่า",
+      "file": "mindmap-empty.json",
+      "description": "เริ่มต้นจากศูนย์"
+    },
+    {
+      "id": "mindmap-audit-issue",
+      "type": "mindmap",
+      "name": "ประเด็นการตรวจสอบ",
+      "file": "mindmap-audit-issue.json",
+      "description": "โครง 5 องค์ประกอบมาตรฐาน: สภาพที่พบ / เกณฑ์ / สาเหตุ / ผลกระทบ / ข้อเสนอแนะ"
+    }
+  ]
+}

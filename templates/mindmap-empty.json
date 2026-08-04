@@ -1,0 +1,15 @@
+{
+  "formatVersion": 1,
+  "type": "mindmap",
+  "meta": {
+    "title": "แผนผังเปล่า",
+    "created": "2026-08-04T00:00:00.000Z",
+    "modified": "2026-08-04T00:00:00.000Z"
+  },
+  "nodes": {
+    "root01": { "text": "หัวข้อหลัก", "parent": null, "order": 0, "collapsed": false, "locked": false, "note": "", "style": {} }
+  },
+  "columns": [],
+  "links": [],
+  "themeMode": "screen"
+}

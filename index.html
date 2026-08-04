@@ -8,25 +8,236 @@
     html, body {
       margin: 0;
       height: 100%;
+      overflow: hidden;
       background: var(--color-background, #040f1c);
       color: var(--color-text, #ffffff);
       font-family: var(--font-body, sans-serif);
     }
-    #app {
+
+    #app { position: relative; height: 100%; }
+    #diagram-canvas { position: absolute; inset: 0; }
+    #diagram-canvas svg { cursor: grab; }
+
+    .dp-toolbar {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 10;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-width: calc(100vw - 24px);
+      background: var(--color-surface, #071d33);
+      padding: 6px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+    .dp-toolbar button {
+      font-family: var(--font-body);
+      background: transparent;
+      color: var(--color-text, #fff);
+      border: 1px solid var(--color-line, #5c7a9e);
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .dp-toolbar button:hover { background: var(--color-accent, #c9a227); color: #111; }
+
+    .dp-node rect {
+      fill: var(--color-surface, #071d33);
+      stroke: var(--color-line, #5c7a9e);
+      stroke-width: 1.5px;
+    }
+    .dp-node text {
+      fill: var(--color-text, #fff);
+      font-family: var(--font-body);
+      font-size: 16px;
+      user-select: none;
+    }
+    .dp-node.is-selected rect { stroke: var(--color-accent, #c9a227); stroke-width: 3px; }
+    .dp-node.is-locked rect { stroke-dasharray: 4 3; }
+    .dp-node.is-dragging { opacity: 0.6; cursor: grabbing; }
+    .dp-node.is-drop-target rect { stroke: var(--color-accent, #c9a227); stroke-width: 3px; }
+    .dp-node.is-root rect { stroke-width: 2.5px; }
+    .dp-toggle { fill: var(--color-accent, #c9a227); cursor: pointer; }
+    .dp-edge { fill: none; stroke: var(--color-line, #5c7a9e); stroke-width: 2px; }
+
+    .dp-node-edit {
+      width: 100%;
       height: 100%;
+      box-sizing: border-box;
+      outline: none;
+      border: none;
+      background: var(--color-background, #040f1c);
+      color: var(--color-text, #fff);
+      font-family: var(--font-body);
+      font-size: 16px;
+      padding: 4px 8px;
+      overflow: hidden;
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <p>Diagram+ — Phase 0: โครงพร้อมแล้ว</p>
-  </div>
+  <div id="app"></div>
+
   <script type="module">
+    import {
+      DocumentStore,
+      createEmptyMindmap,
+      getRecentList,
+      loadFromLocalStorage,
+      saveToLocalStorage,
+      saveDocumentToFile,
+      openDocumentFromFile,
+    } from './src/core/store.js';
+    import { History } from './src/core/history.js';
+    import { Selection } from './src/core/selection.js';
+    import { Canvas } from './src/core/canvas.js';
+    import { attachKeyboard } from './src/core/keyboard.js';
+    import { createToolbar } from './src/ui/toolbar.js';
     import { applyTheme } from './src/ui/theme.js';
-    applyTheme('screen');
+    import { exportPngFile, exportSvgFile } from './src/export/png.js';
+    import { copyDiagramToClipboard } from './src/export/clipboard.js';
+
+    const appEl = document.getElementById('app');
+    const canvasHost = document.createElement('div');
+    canvasHost.id = 'diagram-canvas';
+    appEl.appendChild(canvasHost);
+
+    async function fetchTemplate(file) {
+      const res = await fetch(`./templates/${file}`);
+      const doc = await res.json();
+      doc.meta.created = new Date().toISOString();
+      doc.meta.modified = doc.meta.created;
+      delete doc.meta.id;
+      return doc;
+    }
+
+    async function loadInitialDocument() {
+      const recent = getRecentList();
+      if (recent[0]) {
+        const doc = loadFromLocalStorage(recent[0].id);
+        if (doc) return doc;
+      }
+      try {
+        return await fetchTemplate('mindmap-empty.json');
+      } catch {
+        return createEmptyMindmap();
+      }
+    }
+
+    const initialDoc = await loadInitialDocument();
+    const store = new DocumentStore(initialDoc);
+    const selection = new Selection();
+    const history = new History(200);
+    history.init(store.doc);
+
+    let fileHandle = null;
+
+    const canvas = new Canvas(canvasHost, store, selection, {
+      moveNode: (id, parentId) => store.moveNode(id, parentId),
+      startEdit: (id) => selection.startEditing(id),
+    });
+
+    function render() {
+      canvas.render();
+    }
+
+    store.addEventListener('change', (e) => {
+      saveToLocalStorage(store.doc);
+      render();
+      if (!e.detail?.silent) history.record(store.doc);
+    });
+    selection.addEventListener('change', render);
+
+    applyTheme(store.doc.themeMode || 'screen');
+    selection.select(store.getRootId());
+
+    function resetDocument(doc) {
+      fileHandle = null;
+      store.replaceDocument(doc);
+      history.init(store.doc);
+      selection.select(store.getRootId());
+      applyTheme(store.doc.themeMode || 'screen');
+    }
+
+    attachKeyboard(store, selection, {
+      selectSibling(id, dir) {
+        const parent = store.getParent(id);
+        if (parent == null) return;
+        const siblings = store.getChildren(parent);
+        const next = siblings[siblings.indexOf(id) + dir];
+        if (next) selection.select(next);
+      },
+      selectParent(id) {
+        const p = store.getParent(id);
+        if (p) selection.select(p);
+      },
+      selectFirstChild(id) {
+        const node = store.getNode(id);
+        if (node.collapsed) store.toggleCollapse(id);
+        const children = store.getChildren(id);
+        if (children[0]) selection.select(children[0]);
+      },
+      undo() {
+        const prev = history.undo();
+        if (prev) store.replaceDocument(prev);
+      },
+      redo() {
+        const next = history.redo();
+        if (next) store.replaceDocument(next);
+      },
+      async save() {
+        fileHandle = await saveDocumentToFile(store.doc, fileHandle);
+      },
+    });
+
+    createToolbar(document.body, {
+      async newDocument() {
+        resetDocument(await fetchTemplate('mindmap-empty.json'));
+      },
+      async openFile() {
+        try {
+          const { doc, handle } = await openDocumentFromFile();
+          fileHandle = handle;
+          resetDocument(doc);
+        } catch (err) {
+          console.error(err);
+        }
+      },
+      async save() {
+        fileHandle = await saveDocumentToFile(store.doc, fileHandle);
+      },
+      async exportPng() {
+        await exportPngFile(store, `${store.doc.meta.title || 'diagram'}.png`);
+      },
+      exportSvg() {
+        exportSvgFile(canvas.svg, store.doc, `${store.doc.meta.title || 'diagram'}.svg`);
+      },
+      async copyImage() {
+        try {
+          await copyDiagramToClipboard(store);
+        } catch (err) {
+          alert(`คัดลอกภาพไม่สำเร็จ: ${err.message}`);
+        }
+      },
+      toggleTheme() {
+        const next = store.doc.themeMode === 'print' ? 'screen' : 'print';
+        store.setThemeMode(next);
+        applyTheme(next);
+      },
+      undo() {
+        const prev = history.undo();
+        if (prev) store.replaceDocument(prev);
+      },
+      redo() {
+        const next = history.redo();
+        if (next) store.replaceDocument(next);
+      },
+    });
+
+    render();
   </script>
 </body>
 </html>
