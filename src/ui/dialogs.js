@@ -130,6 +130,79 @@ export function showSaveAsTemplateForm(defaults = {}) {
   });
 }
 
+export function showSearchDialog(store) {
+  return new Promise((resolve) => {
+    const overlay = backdrop();
+    const box = document.createElement('div');
+    box.className = 'dp-modal';
+
+    const title = document.createElement('h2');
+    title.textContent = 'ค้นหาข้อความใน node';
+    box.appendChild(title);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'พิมพ์เพื่อค้นหา...';
+    box.appendChild(input);
+
+    const list = document.createElement('div');
+    list.className = 'dp-modal-list';
+    box.appendChild(list);
+
+    function finish(id) {
+      overlay.remove();
+      resolve(id);
+    }
+
+    function renderResults(query) {
+      list.textContent = '';
+      const q = query.trim().toLowerCase();
+      if (!q) return;
+      const matches = Object.entries(store.doc.nodes).filter(([, n]) => n.text.toLowerCase().includes(q)).slice(0, 30);
+      if (matches.length === 0) {
+        const empty = document.createElement('div');
+        empty.textContent = 'ไม่พบข้อความที่ตรงกัน';
+        empty.style.cssText = 'opacity:0.7;font-size:13px;';
+        list.appendChild(empty);
+        return;
+      }
+      for (const [id, n] of matches) {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'dp-modal-item';
+        const label = document.createElement('span');
+        label.textContent = n.text || '(ว่าง)';
+        item.appendChild(label);
+        item.addEventListener('click', () => finish(id));
+        list.appendChild(item);
+      }
+    }
+
+    input.addEventListener('input', () => renderResults(input.value));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        list.querySelector('.dp-modal-item')?.click();
+      } else if (e.key === 'Escape') {
+        finish(null);
+      }
+    });
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'dp-modal-cancel';
+    cancel.textContent = 'ปิด';
+    cancel.addEventListener('click', () => finish(null));
+    box.appendChild(cancel);
+
+    overlay.appendChild(box);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) finish(null);
+    });
+    mount(overlay);
+    input.focus();
+  });
+}
+
 export function showHint(text) {
   if (!text) return;
   const overlay = backdrop();

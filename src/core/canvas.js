@@ -48,6 +48,36 @@ export class Canvas {
     this.viewport.setAttribute('transform', `translate(${x},${y}) scale(${k})`);
   }
 
+  animateTransformTo(target, duration = 500) {
+    cancelAnimationFrame(this._animFrame);
+    const start = { ...this.transform };
+    const startTime = performance.now();
+    const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+    const step = (now) => {
+      const t = Math.min(1, (now - startTime) / duration);
+      const e = easeOutCubic(t);
+      this.transform = {
+        x: start.x + (target.x - start.x) * e,
+        y: start.y + (target.y - start.y) * e,
+        k: start.k + (target.k - start.k) * e,
+      };
+      this._applyTransform();
+      if (t < 1) this._animFrame = requestAnimationFrame(step);
+    };
+    this._animFrame = requestAnimationFrame(step);
+  }
+
+  centerOnNode(id, opts = {}) {
+    const pos = this.lastPositions.get(id);
+    if (!pos) return;
+    const rect = this.svg.getBoundingClientRect();
+    const k = opts.zoom ?? Math.max(this.transform.k, 1);
+    const cx = pos.x + pos.width / 2;
+    const cy = pos.y + pos.height / 2;
+    const target = { x: rect.width / 2 - cx * k, y: rect.height / 2 - cy * k, k };
+    this.animateTransformTo(target, opts.duration ?? 500);
+  }
+
   _bindPanZoom() {
     let panning = false;
     let lastX = 0;

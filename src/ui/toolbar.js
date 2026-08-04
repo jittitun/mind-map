@@ -25,6 +25,11 @@ export function createToolbar(container, actions) {
   btn('SVG', 'ส่งออก SVG', () => actions.exportSvg());
   btn('คัดลอกภาพ', 'คัดลอกเข้า clipboard', () => actions.copyImage());
   btn('ธีม', 'สลับธีมจอ/พิมพ์', () => actions.toggleTheme());
+  btn('นำเสนอ', 'โหมดนำเสนอเต็มจอ (Esc เพื่อออก)', () => actions.presentMode());
+  btn('โครงร่าง', 'แสดง/ซ่อน outline panel', () => actions.toggleOutline());
+  btn('ค้นหา', 'ค้นหาข้อความใน node', () => actions.search());
+  btn('PDF', 'ส่งออก PDF', () => actions.exportPdf());
+  btn('HTML', 'ส่งออก HTML แบบโต้ตอบได้ไฟล์เดียว', () => actions.exportHtml());
 
   container.appendChild(bar);
   return bar;
