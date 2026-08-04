@@ -4,7 +4,7 @@
     {
       "name": "diagram-plus-dev",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5173"],
+      "runtimeArgs": [".claude/dev-server.py"],
       "port": 5173
     }
   ]

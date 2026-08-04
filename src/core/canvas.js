@@ -1,7 +1,7 @@
 // Editor Core: canvas (pan/zoom), selection, drag-to-reparent — ใช้ร่วมกันทุกชนิดแผนผัง
-// Phase 1: ผูกกับ diagrams/mindmap.js ตรงๆ ก่อน — ค่อยทำ dispatch ตาม doc.type ตอน Phase 2 มี fishbone/logicmodel
+// เลือก diagram module ตาม store.doc.type ผ่าน registry — ไม่ผูกกับชนิดแผนผังใดโดยเฉพาะ
 
-import { computeLayout, renderMindmap } from '../diagrams/mindmap.js';
+import { getDiagramModule } from '../diagrams/registry.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const DRAG_THRESHOLD = 5;
@@ -14,6 +14,7 @@ export class Canvas {
     this.actions = actions; // { moveNode(id, parentId), startEdit(id) }
     this.transform = { x: 60, y: 160, k: 1 }; // เผื่อระยะให้พ้น toolbar ลอยมุมบน (แม้ตอน wrap 2 แถวบนจอแคบ)
     this.lastPositions = new Map();
+    this.diagram = getDiagramModule(store.doc.type);
 
     this._buildDom();
     this._bindPanZoom();
@@ -27,6 +28,11 @@ export class Canvas {
     this.svg.style.width = '100%';
     this.svg.style.height = '100%';
     this.svg.style.touchAction = 'none';
+
+    const defs = document.createElementNS(NS, 'defs');
+    defs.innerHTML =
+      '<marker id="dp-arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#c9a227"/></marker>';
+    this.svg.appendChild(defs);
 
     this.viewport = document.createElementNS(NS, 'g');
     this.edgesLayer = document.createElementNS(NS, 'g');
@@ -135,7 +141,7 @@ export class Canvas {
         draggedEl?.classList.remove('is-dragging');
         dropTargetEl?.classList.remove('is-drop-target');
         dropTargetEl = null;
-        if (targetId) this.actions.moveNode(dragId, targetId);
+        if (targetId && !this.actions.moveNode(dragId, targetId)) this.flashBlocked(dragId);
         this.render();
       } else {
         this.selection.select(dragId);
@@ -159,6 +165,13 @@ export class Canvas {
     ];
   }
 
+  flashBlocked(id) {
+    const el = this.nodesLayer.querySelector(`[data-id="${id}"]`);
+    if (!el) return;
+    el.classList.add('is-blocked');
+    setTimeout(() => el.classList.remove('is-blocked'), 400);
+  }
+
   _hitTest(x, y, excludeId) {
     for (const [id, pos] of this.lastPositions) {
       if (this.store.isDescendant(excludeId, id)) continue;
@@ -172,14 +185,16 @@ export class Canvas {
       e.preventDefault();
       div.dataset.handled = '1';
       this.store.updateText(id, div.textContent);
-      const newId = this.store.addSibling(id, '');
-      this.selection.startEditing(newId);
+      const newId = this.diagram.createSibling(this.store, id, '');
+      if (newId) this.selection.startEditing(newId);
+      else this.flashBlocked(id);
     } else if (e.key === 'Tab') {
       e.preventDefault();
       div.dataset.handled = '1';
       this.store.updateText(id, div.textContent);
-      const newId = this.store.addChild(id, '');
-      this.selection.startEditing(newId);
+      const newId = this.diagram.createChild(this.store, id, '');
+      if (newId) this.selection.startEditing(newId);
+      else this.flashBlocked(id);
     } else if (e.key === 'Escape') {
       e.preventDefault();
       div.dataset.handled = '1';
@@ -194,9 +209,10 @@ export class Canvas {
   };
 
   render() {
-    const positions = computeLayout(this.store);
+    this.diagram = getDiagramModule(this.store.doc.type);
+    const positions = this.diagram.computeLayout(this.store);
     this.lastPositions = positions;
-    renderMindmap(
+    this.diagram.render(
       { edgesLayer: this.edgesLayer, nodesLayer: this.nodesLayer },
       this.store,
       this.selection,

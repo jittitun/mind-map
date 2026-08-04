@@ -59,9 +59,81 @@
     .dp-node.is-locked rect { stroke-dasharray: 4 3; }
     .dp-node.is-dragging { opacity: 0.6; cursor: grabbing; }
     .dp-node.is-drop-target rect { stroke: var(--color-accent, #c9a227); stroke-width: 3px; }
+    .dp-node.is-blocked rect { stroke: #e05252; stroke-width: 3px; transition: stroke 0.1s; }
     .dp-node.is-root rect { stroke-width: 2.5px; }
+    .dp-node.is-header rect { fill: var(--color-accent, #c9a227); stroke: none; }
+    .dp-node.is-header text { fill: #111; font-weight: 600; }
     .dp-toggle { fill: var(--color-accent, #c9a227); cursor: pointer; }
     .dp-edge { fill: none; stroke: var(--color-line, #5c7a9e); stroke-width: 2px; }
+    .dp-edge.dp-spine { stroke-width: 3px; }
+    .dp-edge.dp-link { stroke: var(--color-accent, #c9a227); marker-end: url(#dp-arrowhead); }
+
+    .dp-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .dp-modal {
+      background: var(--color-surface, #071d33);
+      color: var(--color-text, #fff);
+      font-family: var(--font-body);
+      border-radius: 10px;
+      padding: 20px;
+      width: min(420px, 90vw);
+      max-height: 80vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .dp-modal h2 { margin: 0 0 4px; font-size: 16px; }
+    .dp-modal label { font-size: 13px; display: block; }
+    .dp-modal input, .dp-modal textarea {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 4px;
+      background: var(--color-background, #040f1c);
+      color: var(--color-text, #fff);
+      border: 1px solid var(--color-line, #5c7a9e);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-family: var(--font-body);
+      font-size: 13px;
+    }
+    .dp-modal-list { display: flex; flex-direction: column; gap: 6px; }
+    .dp-modal-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      text-align: left;
+      background: var(--color-background, #040f1c);
+      color: var(--color-text, #fff);
+      border: 1px solid var(--color-line, #5c7a9e);
+      border-radius: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-family: var(--font-body);
+    }
+    .dp-modal-item:hover { border-color: var(--color-accent, #c9a227); }
+    .dp-modal-item span { font-size: 12px; opacity: 0.8; }
+    .dp-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .dp-modal button, .dp-modal-cancel {
+      font-family: var(--font-body);
+      background: transparent;
+      color: var(--color-text, #fff);
+      border: 1px solid var(--color-line, #5c7a9e);
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .dp-modal-actions button:last-child { background: var(--color-accent, #c9a227); color: #111; border-color: transparent; }
 
     .dp-node-edit {
       width: 100%;
@@ -97,6 +169,8 @@
     import { attachKeyboard } from './src/core/keyboard.js';
     import { createToolbar } from './src/ui/toolbar.js';
     import { applyTheme } from './src/ui/theme.js';
+    import { showTemplateGallery, showSaveAsTemplateForm, showHint } from './src/ui/dialogs.js';
+    import { loadTemplateIndex, loadTemplateDoc, buildTemplateDoc } from './src/ui/templates.js';
     import { exportPngFile, exportSvgFile } from './src/export/png.js';
     import { copyDiagramToClipboard } from './src/export/clipboard.js';
 
@@ -105,15 +179,6 @@
     canvasHost.id = 'diagram-canvas';
     appEl.appendChild(canvasHost);
 
-    async function fetchTemplate(file) {
-      const res = await fetch(`./templates/${file}`);
-      const doc = await res.json();
-      doc.meta.created = new Date().toISOString();
-      doc.meta.modified = doc.meta.created;
-      delete doc.meta.id;
-      return doc;
-    }
-
     async function loadInitialDocument() {
       const recent = getRecentList();
       if (recent[0]) {
@@ -121,7 +186,7 @@
         if (doc) return doc;
       }
       try {
-        return await fetchTemplate('mindmap-empty.json');
+        return await loadTemplateDoc('mindmap-empty.json');
       } catch {
         return createEmptyMindmap();
       }
@@ -152,34 +217,17 @@
     selection.addEventListener('change', render);
 
     applyTheme(store.doc.themeMode || 'screen');
-    selection.select(store.getRootId());
+    selection.select(store.getInitialSelection());
 
     function resetDocument(doc) {
       fileHandle = null;
       store.replaceDocument(doc);
       history.init(store.doc);
-      selection.select(store.getRootId());
+      selection.select(store.getInitialSelection());
       applyTheme(store.doc.themeMode || 'screen');
     }
 
     attachKeyboard(store, selection, {
-      selectSibling(id, dir) {
-        const parent = store.getParent(id);
-        if (parent == null) return;
-        const siblings = store.getChildren(parent);
-        const next = siblings[siblings.indexOf(id) + dir];
-        if (next) selection.select(next);
-      },
-      selectParent(id) {
-        const p = store.getParent(id);
-        if (p) selection.select(p);
-      },
-      selectFirstChild(id) {
-        const node = store.getNode(id);
-        if (node.collapsed) store.toggleCollapse(id);
-        const children = store.getChildren(id);
-        if (children[0]) selection.select(children[0]);
-      },
       undo() {
         const prev = history.undo();
         if (prev) store.replaceDocument(prev);
@@ -191,11 +239,28 @@
       async save() {
         fileHandle = await saveDocumentToFile(store.doc, fileHandle);
       },
+      flashBlocked(id) {
+        canvas.flashBlocked(id);
+      },
     });
 
     createToolbar(document.body, {
-      async newDocument() {
-        resetDocument(await fetchTemplate('mindmap-empty.json'));
+      async newFromTemplate() {
+        const templates = await loadTemplateIndex();
+        const picked = await showTemplateGallery(templates);
+        if (!picked) return;
+        const doc = await loadTemplateDoc(picked.file);
+        resetDocument(doc);
+        if (doc.template?.hint) showHint(doc.template.hint);
+      },
+      async saveAsTemplate() {
+        const meta = await showSaveAsTemplateForm({ name: store.doc.meta.title });
+        if (!meta) return;
+        const templateDoc = buildTemplateDoc(store.doc, meta);
+        await saveDocumentToFile(templateDoc, null);
+      },
+      toggleLock() {
+        if (selection.selectedId) store.toggleLock(selection.selectedId);
       },
       async openFile() {
         try {

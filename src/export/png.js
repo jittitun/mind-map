@@ -1,15 +1,16 @@
 // Export Engine: PNG — วาดตรงลง Canvas 2D ตามตำแหน่ง layout (ไม่ผ่าน SVG→Image)
 // เหตุผล: เลี่ยงปัญหาฟอนต์ไทยหายเวลา rasterize SVG ข้าม origin (ดู docs/PLAN.md ข้อ 7)
 // ผลคือพึ่งฟอนต์ที่ระบบ/เบราว์เซอร์โหลดไว้แล้วผ่าน CSS font-family เดียวกับหน้าจอ
+// วิธีวาดจริง (edges/nodes) มอบให้ diagram module ของ store.doc.type ตัดสินใจผ่าน renderToCanvas2D
 
-import { computeLayout, NODE_FONT, LINE_HEIGHT, NODE_PADDING_Y } from '../diagrams/mindmap.js';
+import { getDiagramModule } from '../diagrams/registry.js';
 import { themes } from '../ui/theme.js';
 
 function boundsOf(positions) {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
+  let minX = 0;
+  let minY = 0;
+  let maxX = 0;
+  let maxY = 0;
   for (const p of positions.values()) {
     minX = Math.min(minX, p.x);
     minY = Math.min(minY, p.y);
@@ -19,18 +20,9 @@ function boundsOf(positions) {
   return { minX, minY, maxX, maxY };
 }
 
-function roundRectPath(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
 export function renderDiagramToCanvas(store, scale = 2, margin = 40) {
-  const positions = computeLayout(store);
+  const diagram = getDiagramModule(store.doc.type);
+  const positions = diagram.computeLayout(store);
   const { minX, minY, maxX, maxY } = boundsOf(positions);
   const w = maxX - minX + margin * 2;
   const h = maxY - minY + margin * 2;
@@ -46,39 +38,7 @@ export function renderDiagramToCanvas(store, scale = 2, margin = 40) {
   ctx.fillStyle = theme.background;
   ctx.fillRect(minX - margin, minY - margin, w, h);
 
-  ctx.strokeStyle = theme.line;
-  ctx.lineWidth = 2;
-  for (const [, pos] of positions) {
-    if (pos.parentId == null) continue;
-    const p = positions.get(pos.parentId);
-    if (!p) continue;
-    const x1 = p.x + p.width;
-    const y1 = p.y + p.height / 2;
-    const x2 = pos.x;
-    const y2 = pos.y + pos.height / 2;
-    const midX = (x1 + x2) / 2;
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.bezierCurveTo(midX, y1, midX, y2, x2, y2);
-    ctx.stroke();
-  }
-
-  ctx.font = NODE_FONT;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  for (const [, pos] of positions) {
-    ctx.fillStyle = theme.surface;
-    roundRectPath(ctx, pos.x, pos.y, pos.width, pos.height, 8);
-    ctx.fill();
-    ctx.strokeStyle = theme.line;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.fillStyle = theme.text;
-    pos.lines.forEach((line, i) => {
-      ctx.fillText(line, pos.x + pos.width / 2, pos.y + NODE_PADDING_Y + (i + 0.8) * LINE_HEIGHT);
-    });
-  }
+  diagram.renderToCanvas2D(ctx, store, positions, theme);
 
   return canvas;
 }

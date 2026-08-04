@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "type": "fishbone",
+  "meta": {
+    "title": "Fishbone 6M",
+    "created": "2026-08-04T00:00:00.000Z",
+    "modified": "2026-08-04T00:00:00.000Z"
+  },
+  "nodes": {
+    "root": { "text": "ปัญหา", "parent": null, "order": 0, "collapsed": false, "locked": false, "note": "", "style": {} },
+    "b1": { "text": "คน (Man)", "parent": "root", "order": 0, "collapsed": false, "locked": true, "note": "", "style": {} },
+    "b2": { "text": "เครื่องจักร/อุปกรณ์ (Machine)", "parent": "root", "order": 1, "collapsed": false, "locked": true, "note": "", "style": {} },
+    "b3": { "text": "วิธีการ (Method)", "parent": "root", "order": 2, "collapsed": false, "locked": true, "note": "", "style": {} },
+    "b4": { "text": "วัสดุ (Material)", "parent": "root", "order": 3, "collapsed": false, "locked": true, "note": "", "style": {} },
+    "b5": { "text": "การวัด (Measurement)", "parent": "root", "order": 4, "collapsed": false, "locked": true, "note": "", "style": {} },
+    "b6": { "text": "สิ่งแวดล้อม (Environment)", "parent": "root", "order": 5, "collapsed": false, "locked": true, "note": "", "style": {} }
+  },
+  "columns": [],
+  "links": [],
+  "themeMode": "screen",
+  "template": {
+    "name": "Fishbone 6M",
+    "description": "ผังก้างปลาวิเคราะห์สาเหตุแบบ 6M มาตรฐานสากล (Man/Machine/Method/Material/Measurement/Environment)",
+    "lockedNodeIds": ["b1", "b2", "b3", "b4", "b5", "b6"],
+    "hint": "พิมพ์ปัญหาที่หัวปลาด้านขวา แล้วเลือกแต่ละหมวด (คน/เครื่องจักร/วิธีการ/วัสดุ/การวัด/สิ่งแวดล้อม) กด Tab เพื่อเพิ่มสาเหตุย่อยใต้หมวดนั้น — หมวดหลักถูกล็อกไว้ไม่ให้ลบ/ย้าย แต่แก้ชื่อได้"
+  }
+}

@@ -13,6 +13,34 @@
       "name": "ประเด็นการตรวจสอบ",
       "file": "mindmap-audit-issue.json",
       "description": "โครง 5 องค์ประกอบมาตรฐาน: สภาพที่พบ / เกณฑ์ / สาเหตุ / ผลกระทบ / ข้อเสนอแนะ"
+    },
+    {
+      "id": "fishbone-6m",
+      "type": "fishbone",
+      "name": "Fishbone 6M",
+      "file": "fishbone-6m.json",
+      "description": "ผังก้างปลา 6M มาตรฐานสากล (Man/Machine/Method/Material/Measurement/Environment)"
+    },
+    {
+      "id": "fishbone-audit-cause",
+      "type": "fishbone",
+      "name": "วิเคราะห์สาเหตุข้อตรวจพบ",
+      "file": "fishbone-audit-cause.json",
+      "description": "6 หมวด: บุคลากร / กระบวนการปฏิบัติงาน / ระบบสารสนเทศ / กฎหมายระเบียบ / งบประมาณ / สภาพแวดล้อม"
+    },
+    {
+      "id": "logicmodel-standard",
+      "type": "logicmodel",
+      "name": "Logic Model มาตรฐาน",
+      "file": "logicmodel-standard.json",
+      "description": "5 คอลัมน์: ปัจจัยนำเข้า / กิจกรรม / ผลผลิต / ผลลัพธ์ / ผลกระทบ"
+    },
+    {
+      "id": "logicmodel-3e",
+      "type": "logicmodel",
+      "name": "Logic Model การตรวจผลสัมฤทธิ์ (3E)",
+      "file": "logicmodel-3e.json",
+      "description": "5 คอลัมน์ + ช่องตัวชี้วัดรายขั้น สอดคล้องกรอบ 3E (Economy/Efficiency/Effectiveness)"
     }
   ]
 }

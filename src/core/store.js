@@ -90,7 +90,7 @@ export class DocumentStore extends EventTarget {
 
   addSibling(nodeId, text = '') {
     const n = this.doc.nodes[nodeId];
-    if (!n) return null;
+    if (!n || n.locked) return null; // node ล็อกเพิ่มพี่น้องไม่ได้ (แก้ข้อความ/เพิ่มลูกยังทำได้)
     if (n.parent === null) return this.addChild(nodeId, text);
     let id = genId();
     while (this.doc.nodes[id]) id = genId();
@@ -102,21 +102,27 @@ export class DocumentStore extends EventTarget {
 
   updateText(id, text) {
     const n = this.doc.nodes[id];
-    if (!n || n.locked) return;
+    if (!n) return; // locked แก้ข้อความได้ปกติ — ล็อกกันแค่ ลบ/ย้าย/เพิ่มพี่น้อง
     n.text = text;
     this._commit();
   }
 
   deleteNode(id) {
     const n = this.doc.nodes[id];
-    if (!n || n.parent === null || n.locked) return false;
-    for (const did of this._collectSubtree(id)) delete this.doc.nodes[did];
-    this._normalizeOrder(n.parent);
+    if (!n || n.locked || n.isColumnHeader) return false;
+    if (this.doc.type !== 'logicmodel' && n.parent === null) return false; // ห้ามลบ root ของ tree (mindmap/fishbone)
+    const toDelete = this._collectSubtree(id);
+    for (const did of toDelete) delete this.doc.nodes[did];
+    if (n.parent !== null) this._normalizeOrder(n.parent);
+    if (n.columnId != null) this._normalizeColumnOrder(n.columnId);
+    const deletedSet = new Set(toDelete);
+    if (this.doc.links) this.doc.links = this.doc.links.filter((l) => !deletedSet.has(l.from) && !deletedSet.has(l.to));
     this._commit();
     return true;
   }
 
   moveNode(id, newParentId) {
+    if (this.doc.type === 'logicmodel') return false; // logic model ย้ายด้วย moveCardToColumn ไม่ใช่ moveNode (ไม่มี parent tree)
     const n = this.doc.nodes[id];
     if (!n || n.locked) return false;
     if (this.isDescendant(id, newParentId)) return false; // กัน cycle: ห้ามย้ายเข้าไปในกิ่งลูกหลานตัวเอง
@@ -131,12 +137,13 @@ export class DocumentStore extends EventTarget {
 
   reorderSibling(id, direction) {
     const n = this.doc.nodes[id];
-    if (!n) return;
+    if (!n || n.locked) return; // ล็อกแล้วย้ายตำแหน่งไม่ได้
     const siblings = this.getChildren(n.parent);
     const idx = siblings.indexOf(id);
     const swapIdx = idx + direction;
     if (swapIdx < 0 || swapIdx >= siblings.length) return;
     const otherId = siblings[swapIdx];
+    if (this.doc.nodes[otherId].locked) return; // สลับตำแหน่งจะไปย้ายพี่น้องที่ล็อกด้วย
     const tmp = this.doc.nodes[id].order;
     this.doc.nodes[id].order = this.doc.nodes[otherId].order;
     this.doc.nodes[otherId].order = tmp;
@@ -150,6 +157,13 @@ export class DocumentStore extends EventTarget {
     this._commit();
   }
 
+  toggleLock(id) {
+    const n = this.doc.nodes[id];
+    if (!n) return;
+    n.locked = !n.locked;
+    this._commit();
+  }
+
   setThemeMode(mode) {
     this.doc.themeMode = mode;
     this._commit();
@@ -158,6 +172,110 @@ export class DocumentStore extends EventTarget {
   replaceDocument(doc) {
     this.doc = doc;
     this._commit({ silent: true });
+  }
+
+  getInitialSelection() {
+    if (this.doc.type === 'logicmodel') {
+      const firstCol = this.getColumns()[0];
+      if (firstCol) {
+        const header = this.getColumnHeader(firstCol.id);
+        if (header) return header;
+        const cards = this.getCardsInColumn(firstCol.id);
+        if (cards[0]) return cards[0];
+      }
+      return Object.keys(this.doc.nodes)[0] || null;
+    }
+    return this.getRootId();
+  }
+
+  // --- Logic model: คอลัมน์, การ์ด, links (node สังกัดคอลัมน์แทนสังกัดพ่อ) ---
+
+  getColumns() {
+    return this.doc.columns || [];
+  }
+
+  getColumnHeader(columnId) {
+    const found = Object.entries(this.doc.nodes).find(([, n]) => n.columnId === columnId && n.isColumnHeader);
+    return found ? found[0] : null;
+  }
+
+  getCardsInColumn(columnId) {
+    return Object.entries(this.doc.nodes)
+      .filter(([, n]) => n.columnId === columnId && !n.isColumnHeader)
+      .sort((a, b) => a[1].order - b[1].order)
+      .map(([id]) => id);
+  }
+
+  addCard(columnId, text = '') {
+    let id = genId();
+    while (this.doc.nodes[id]) id = genId();
+    const order = this.getCardsInColumn(columnId).length;
+    this.doc.nodes[id] = { text, parent: null, order, collapsed: false, locked: false, note: '', style: {}, columnId };
+    this._commit();
+    return id;
+  }
+
+  addCardAfter(columnId, afterId, text = '') {
+    let id = genId();
+    while (this.doc.nodes[id]) id = genId();
+    const afterNode = this.doc.nodes[afterId];
+    const afterOrder = afterNode ? afterNode.order : this.getCardsInColumn(columnId).length - 1;
+    this.doc.nodes[id] = { text, parent: null, order: afterOrder + 0.5, collapsed: false, locked: false, note: '', style: {}, columnId };
+    this._normalizeColumnOrder(columnId);
+    this._commit();
+    return id;
+  }
+
+  moveCardToColumn(id, columnId) {
+    const n = this.doc.nodes[id];
+    if (!n || n.locked || n.isColumnHeader || n.columnId === columnId) return false;
+    const oldColumnId = n.columnId;
+    const newOrder = this.getCardsInColumn(columnId).length;
+    n.columnId = columnId;
+    n.order = newOrder;
+    this._normalizeColumnOrder(columnId);
+    this._normalizeColumnOrder(oldColumnId);
+    this._commit();
+    return true;
+  }
+
+  reorderCardInColumn(id, direction) {
+    const n = this.doc.nodes[id];
+    if (!n || n.locked) return;
+    const cards = this.getCardsInColumn(n.columnId);
+    const idx = cards.indexOf(id);
+    const swapIdx = idx + direction;
+    if (swapIdx < 0 || swapIdx >= cards.length) return;
+    const otherId = cards[swapIdx];
+    if (this.doc.nodes[otherId].locked) return;
+    const tmp = this.doc.nodes[id].order;
+    this.doc.nodes[id].order = this.doc.nodes[otherId].order;
+    this.doc.nodes[otherId].order = tmp;
+    this._commit();
+  }
+
+  addLink(fromId, toId) {
+    if (!fromId || !toId || fromId === toId) return null;
+    if (!this.doc.links) this.doc.links = [];
+    if (this.doc.links.some((l) => l.from === fromId && l.to === toId)) return null;
+    let id = genId();
+    while (this.doc.links.some((l) => l.id === id)) id = genId();
+    this.doc.links.push({ id, from: fromId, to: toId });
+    this._commit();
+    return id;
+  }
+
+  removeLink(linkId) {
+    if (!this.doc.links) return false;
+    const before = this.doc.links.length;
+    this.doc.links = this.doc.links.filter((l) => l.id !== linkId);
+    if (this.doc.links.length === before) return false;
+    this._commit();
+    return true;
+  }
+
+  getLinks() {
+    return this.doc.links || [];
   }
 
   _collectSubtree(id) {
@@ -169,6 +287,12 @@ export class DocumentStore extends EventTarget {
   _normalizeOrder(parentId) {
     this.getChildren(parentId).forEach((sid, i) => {
       this.doc.nodes[sid].order = i;
+    });
+  }
+
+  _normalizeColumnOrder(columnId) {
+    this.getCardsInColumn(columnId).forEach((id, i) => {
+      this.doc.nodes[id].order = i;
     });
   }
 

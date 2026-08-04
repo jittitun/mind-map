@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "type": "logicmodel",
+  "meta": {
+    "title": "Logic Model การตรวจผลสัมฤทธิ์ (3E)",
+    "created": "2026-08-04T00:00:00.000Z",
+    "modified": "2026-08-04T00:00:00.000Z"
+  },
+  "nodes": {
+    "h1": { "text": "ปัจจัยนำเข้า (Input)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c1", "isColumnHeader": true },
+    "h2": { "text": "กิจกรรม (Activity)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c2", "isColumnHeader": true },
+    "h3": { "text": "ผลผลิต (Output)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c3", "isColumnHeader": true },
+    "h4": { "text": "ผลลัพธ์ (Outcome)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c4", "isColumnHeader": true },
+    "h5": { "text": "ผลกระทบ (Impact)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c5", "isColumnHeader": true },
+    "i1": { "text": "ตัวชี้วัด: ความประหยัด (Economy) — ใช้ทรัพยากรคุ้มค่าหรือไม่", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c1" },
+    "i2": { "text": "ตัวชี้วัด: ประสิทธิภาพ (Efficiency) — ผลผลิตต่อทรัพยากรที่ใช้", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c2" },
+    "i3": { "text": "ตัวชี้วัด: ประสิทธิภาพ (Efficiency)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c3" },
+    "i4": { "text": "ตัวชี้วัด: ประสิทธิผล (Effectiveness) — บรรลุวัตถุประสงค์หรือไม่", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c4" },
+    "i5": { "text": "ตัวชี้วัด: ประสิทธิผล (Effectiveness)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c5" }
+  },
+  "columns": [{ "id": "c1" }, { "id": "c2" }, { "id": "c3" }, { "id": "c4" }, { "id": "c5" }],
+  "links": [],
+  "themeMode": "screen",
+  "template": {
+    "name": "Logic Model การตรวจผลสัมฤทธิ์ (3E)",
+    "description": "logic model 5 คอลัมน์ + ช่องตัวชี้วัดรายขั้น สอดคล้องกรอบ 3E (Economy / Efficiency / Effectiveness) สำหรับงานตรวจสอบผลสัมฤทธิ์",
+    "lockedNodeIds": ["h1", "h2", "h3", "h4", "h5", "i1", "i2", "i3", "i4", "i5"],
+    "hint": "แถวบนสุดของแต่ละคอลัมน์คือช่องตัวชี้วัดตามกรอบ 3E (แก้ข้อความได้ ลบไม่ได้) เลือกการ์ดแล้วกด Enter เพื่อเพิ่มเนื้อหาในคอลัมน์เดียวกัน หรือ Tab เพื่อไปคอลัมน์ถัดไปพร้อมลูกศรเชื่อม"
+  }
+}
