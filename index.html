@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Diagram+</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--color-background, #040f1c);
+      color: var(--color-text, #ffffff);
+      font-family: var(--font-body, sans-serif);
+    }
+    #app {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <p>Diagram+ — Phase 0: โครงพร้อมแล้ว</p>
+  </div>
+  <script type="module">
+    import { applyTheme } from './src/ui/theme.js';
+    applyTheme('screen');
+  </script>
+</body>
+</html>
