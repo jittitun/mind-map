@@ -288,7 +288,20 @@ Phase ที่หนักที่สุดเพราะสร้างร�
 
 **เครื่องมือ:** ยังใช้เทคนิคเดิมจาก Phase 2 (cache-busted dynamic import `?bust=timestamp`) เมื่อ live page cache โค้ดเก่าค้าง — จำเป็นบ่อยขึ้นเพราะแก้ไฟล์ถี่มากใน Phase นี้
 
-**Session ถัดไป:** Phase 3 คือ Phase สุดท้ายตามแผนเดิม (ไม่รวม Phase 4 AI Assist ซึ่งเป็น option) — โปรเจกต์อยู่ในสถานะ MVP ครบทุก Phase หลักแล้ว งานที่เหลือคือ: (1) deploy GitHub Pages จริง (ยังไม่ทำตั้งแต่ Phase 0 — รอชื่อ repo จากผู้ใช้), (2) แทนที่สี placeholder ด้วยค่าจริงจาก AUDIT+, (3) ฝังฟอนต์ Sarabun จริงถ้าต้องการ, (4) ทดสอบกับผู้ใช้จริง (ระดมสมองในที่ประชุมทีมตรวจ) ตามเกณฑ์ความสำเร็จข้อ 9 ของแผน, (5) พิจารณา Phase 4 AI Assist ถ้าต้องการ
+### 2026-08-04 (ต่อ) — Deploy GitHub Pages + แก้บั๊กจาก user feedback รอบแรก
+
+**Deploy:** push ขึ้น https://github.com/jittitun/mind-map (ผู้ใช้สร้าง repo เอง มี readme.txt เปล่าติดมา — merge --allow-unrelated-histories เก็บไว้ทั้งคู่) เปิด GitHub Pages จาก branch main / root (ผู้ใช้ตั้งค่าเองใน Settings เพราะไม่มี gh CLI ในเครื่อง) เว็บขึ้นที่ `https://jittitun.github.io/mind-map/`
+
+**Feedback รอบแรกจาก production:** พบบั๊ก 2 ตัว + ขอปรับ template/ฟีเจอร์เพิ่ม — แก้ครบแล้ว (commit `6f9dd22`):
+
+- **บั๊ก 1 — แก้ไข node ไม่ได้หลัง Enter:** root cause คือ `canvas.js` mousedown handler เช็ก `selection.editingId` แล้ว bail-out ทันทีไม่ว่าจะคลิก node ไหน (ไม่ได้เช็กว่าคลิก node เดิมที่กำลังแก้หรือ node อื่น) ทำให้คลิกไป node อื่นระหว่างแก้ไขไม่มีผลอะไร (blur ที่ตามมาไปเลือก node เดิมที่เพิ่งแก้เสร็จ ไม่ใช่ node ที่เพิ่งคลิก) ผู้ใช้จึงรู้สึกว่า "แก้ไขไม่ได้อีก" ทั้งที่ข้อความจริงถูกบันทึกแล้ว — **บทเรียนการทดสอบ**: reproduce บั๊กนี้ยากกว่าที่คิดเพราะ synthetic `dispatchEvent(MouseEvent)` ไม่ trigger native focus-shift และ ref-to-coordinate ของ SVG text ใน accessibility tree ไม่แม่นยำ (คลิกพลาดไปโดน background) ต้องใช้ screenshot จริง + คำนวณพิกัดจากภาพเพื่อ reproduce ได้ถูกต้อง
+- **บั๊ก 2 — ก้างย่อย fishbone ซ้อนทับ:** layout เดิมใช้ bone length คงที่ไม่สนใจจำนวน/ขนาดกล่องลูกเลย เปลี่ยนเป็น two-pass (bottom-up วัดความยาวที่ต้องการก่อน แล้วค่อย top-down วางตำแหน่งจริง), มุมก้างย่อยเปลี่ยนเป็นตั้งฉาก 90°, เว้น margin จากปลายก้าง, ระยะห่างก้างหลักบนสันหลังขยายตามความยาวก้างจริง — **ยังไม่ perfect 100%**: กรณีสุดขั้ว (6-8 ก้างย่อยในหมวดเดียว) ยังมีซ้อนทับเหลือเล็กน้อย (ลดจาก 66→13 จุดในการทดสอบ adversarial) เพราะการแก้แบบเต็มรูปแบบต้องทำ 2D bounding-box packing แบบเดียวกับที่ d3-flextree ทำให้ mindmap ซึ่งเป็นงานใหญ่กว่านี้มาก — กรณีใช้งานจริง (2-4 ก้างย่อย/หมวด) ทดสอบแล้ว 0 ซ้อนทับ
+- **Template**: ตัด "วิเคราะห์สาเหตุข้อตรวจพบ" และ "Logic Model มาตรฐาน" ออกจาก gallery (เหลือ 4 template), เปลี่ยนชื่อ "Logic Model การตรวจผลสัมฤทธิ์ (3E)" → "Logic Model + 3Es" พร้อมเพิ่มคอลัมน์ "วัตถุประสงค์ (Objective)" หน้าปัจจัยนำเข้า
+- **Logic model drag ใหม่**: เพิ่ม `onDrop(store, draggedId, targetId)` เป็น per-diagram-module function (mindmap/fishbone = `moveNode`, logicmodel = ลากในคอลัมน์เดียวกัน→จัดลำดับ, ลากข้ามคอลัมน์→สร้าง link) — canvas.js เรียก `this.diagram.onDrop()` แทนการรับ `actions.moveNode` แบบเดิม (ลบ action นั้นออกจาก index.html ด้วย)
+
+**เครื่องมือ:** เจอ classifier ของ javascript_tool down ชั่วคราวระหว่างเซสชัน (ไม่เกี่ยวกับโค้ด) — ใช้เวลาที่รอทำงานไฟล์ (template edits) แทนเพื่อไม่เสียเวลา
+
+**Session ถัดไป:** โปรเจกต์ deploy แล้วและแก้ feedback รอบแรกครบ งานที่เหลือ: (1) แทนที่สี placeholder ด้วยค่าจริงจาก AUDIT+, (2) ฝังฟอนต์ Sarabun จริงถ้าต้องการ, (3) รอ feedback รอบถัดไปจากการใช้งานจริง, (4) ถ้าต้องการปรับ fishbone ให้ไม่ซ้อนทับ 100% ในทุกกรณี ต้องทำ 2D subtree bounding-box packing เต็มรูปแบบ (งานใหญ่ ยังไม่ทำ), (5) พิจารณา Phase 4 AI Assist ถ้าต้องการ
 
 ---
 
