@@ -5,7 +5,7 @@
 |---|---|
 | **เวอร์ชันเอกสาร** | 1.0 |
 | **วันที่** | 4 สิงหาคม 2569 |
-| **สถานะ** | อนุมัติแนวคิดแล้ว — พร้อมเริ่มพัฒนา Phase 0 |
+| **สถานะ** | Phase 1 (Core Engine + Mindmap MVP) เสร็จ MVP แล้ว — ดูบันทึกสถานะท้ายเอกสาร |
 | **ชื่อโครงการ** | Diagram+ (ชื่อชั่วคราว ตั้งให้สอดคล้องแบรนด์ AUDIT+ — เปลี่ยนได้) |
 
 ---
@@ -214,6 +214,35 @@ Phase ที่หนักที่สุดเพราะสร้างร�
 เชิงผลิตภัณฑ์: Phase 1–3 เสร็จภายในราว 6 สัปดาห์ (part-time) และผ่านเกณฑ์ตรวจรับทุกข้อ โดยเฉพาะการทดสอบสำคัญที่สุด — ใช้ระดมสมองจริงในที่ประชุมทีมตรวจหนึ่งครั้งตั้งแต่จบ Phase 1 แล้วเก็บ feedback มาปรับก่อนทำ Phase 2
 
 เชิงองค์กร: มีแผนผังจาก Diagram+ ปรากฏในรายงานตรวจสอบจริง, สำนักตรวจอย่างน้อยหนึ่งแห่งนอกจากทีมผู้พัฒนานำ template ไปใช้เอง และมี template องค์กรเพิ่มจากรุ่นแรกโดยที่ผู้เพิ่มไม่ใช่ผู้พัฒนา — สามข้อนี้คือหลักฐานว่าเครื่องมือ "เดินได้ด้วยตัวเอง"
+
+---
+
+## บันทึกสถานะการพัฒนา (อัปเดตท้าย session)
+
+### 2026-08-04 — Phase 0 + Phase 1 (MVP)
+
+**Phase 0** เสร็จสมบูรณ์: `git init` ในเครื่อง, โครงไดเรกทอรีตามข้อ 3, `src/ui/theme.js` (สี Navy/Gold เป็น **placeholder** — ยังไม่ใช่ค่าจริงจาก AUDIT+ เพราะหาโปรเจกต์เดิมในเครื่องไม่พบ), `CLAUDE.md`, commit แรก. **ยังไม่ push ขึ้น GitHub / ยังไม่เปิด GitHub Pages** — รอชื่อ repo และ GitHub username/org จากผู้ใช้
+
+**Phase 1 (Core Engine + Mindmap MVP)** เสร็จ MVP แล้ว ทดสอบผ่าน local dev server (`python -m http.server` ตาม `.claude/launch.json`) ด้วยการรันโค้ดจริงใน browser (ไม่ใช่แค่ code review):
+
+สิ่งที่ทำและทดสอบผ่านแล้ว:
+- Document Store (`src/core/store.js`): node CRUD, parent/order tree, `isDescendant` กัน cycle, formatVersion+migrate, autosave localStorage ทุกการแก้ไข, รายการไฟล์ล่าสุด, เปิด/บันทึกผ่าน File System Access API (ตรวจพบ API ในเบราว์เซอร์ Chromium แล้ว) + fallback ดาวน์โหลด/อัปโหลด
+- History (`src/core/history.js`): snapshot undo/redo, เพดาน 200 — ทดสอบ undo/redo จริงแล้วถูกต้อง
+- Mindmap layout (`src/diagrams/mindmap.js`): d3-flextree แนวนอน (root ซ้าย ขยายขวา — เป็นการตัดสินใจของ Phase 1 นี้ ไม่ใช่ FreeMind-style สองข้าง, ถ้าต้องการแบบนั้นค่อยปรับใน Phase หลัง), ตัดคำไทยด้วย `Intl.Segmenter('th')` ทดสอบกับข้อความยาวจริงแล้ว wrap ถูกจุด ไม่ตัดกลางคำ
+- Canvas (`src/core/canvas.js`): pan/zoom, select, drag-to-reparent (ทดสอบ logic การย้ายผ่าน store แล้ว, cycle guard ทำงานถูกต้อง), เข้าโหมดพิมพ์ทันทีตอนสร้าง node ใหม่
+- Keyboard (`src/core/keyboard.js`): ครบตามแผนที่ข้อ 5 ทดสอบจริงแล้ว: Tab/Enter/F2/Escape/arrows/Ctrl+arrows/Space/Delete/Ctrl+Z/Y/S
+- Export (`src/export/png.js`, `clipboard.js`): **ตัดสินใจสำคัญ** — วาดตรงลง Canvas 2D ตามตำแหน่ง layout เอง ไม่ผ่าน SVG→Image เพื่อเลี่ยงปัญหาฟอนต์ไทยหายที่ระบุในตารางความเสี่ยงข้อ 7 โดยสิ้นเชิง ทดสอบแล้วข้อความไทยคมชัดถูกต้องในภาพที่ export
+- ทดสอบ layout 100+ node จริง (สร้าง 102 node): render ~20ms ต่อครั้ง, pan/zoom ลื่นเพราะไม่ re-layout ระหว่าง pan/zoom (แก้ transform attribute ตรงๆ)
+- ทดสอบ autosave + ปิดเปิดใหม่ (reload หน้า): เอกสารอยู่ครบ
+
+สิ่งที่ยังไม่ได้ทำ (เกินสโคป Phase 1 หรือรอข้อมูล):
+- ฟอนต์ Sarabun จริง — ตอนนี้พึ่ง fallback `'Noto Sans Thai', sans-serif` ของระบบ (ไม่ได้ download ไฟล์ฟอนต์เพราะต้องขออนุญาตก่อน) — ตัดสินใจเลื่อนไปทำพร้อม Phase 3 export hardening ตามตารางความเสี่ยงเดิม
+- Template gallery UI เต็มรูปแบบ + save-as-template + กลไก `lockedNodeIds` ระดับ template — เป็นสโคป Phase 2 ตามแผน (แต่ node-level `locked` flag ใน store.js ใช้งานได้แล้วตั้งแต่ Phase 1)
+- สีธีม Navy/Gold ยังเป็น placeholder ไม่ใช่ค่าจริงจาก AUDIT+
+- ยังไม่ทดสอบ File System Access save/open แบบเต็ม (ต้องมี user gesture จริง, ทดสอบแค่ตรวจพบ API)
+- ยังไม่ deploy GitHub Pages
+
+**Session ถัดไปเริ่มได้ทันทีจาก:** Phase 2 — Fishbone + Logic Model + ระบบ Template เต็มรูปแบบ (`src/diagrams/fishbone.js`, `logicmodel.js`, `src/ui/dialogs.js` สำหรับ template gallery)
 
 ---
 
