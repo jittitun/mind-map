@@ -203,6 +203,85 @@ export function showSearchDialog(store) {
   });
 }
 
+// ปักธงความเสี่ยง 3E ลงการ์ดปัจจัย — เลือกด้าน (ที่ยังไม่ถูกปัก) แล้วพิมพ์ข้อความความเสี่ยง
+export function showRiskFlagForm(kinds, usedKinds) {
+  return new Promise((resolve) => {
+    const available = kinds.filter((k) => !usedKinds.includes(k.kind));
+    const overlay = backdrop();
+    const box = document.createElement('div');
+    box.className = 'dp-modal';
+
+    const title = document.createElement('h2');
+    title.textContent = 'ปักธงความเสี่ยง (3E)';
+    box.appendChild(title);
+
+    if (available.length === 0) {
+      const p = document.createElement('p');
+      p.className = 'dp-hint-text';
+      p.textContent = 'การ์ดนี้ปักธงครบทั้ง 3 ด้านแล้ว — แก้ข้อความความเสี่ยงได้ที่กล่องด้านล่างโดยตรง';
+      box.appendChild(p);
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.textContent = 'ปิด';
+      close.addEventListener('click', () => {
+        overlay.remove();
+        resolve(null);
+      });
+      box.appendChild(close);
+      overlay.appendChild(box);
+      mount(overlay);
+      return;
+    }
+
+    const kindLabel = document.createElement('label');
+    kindLabel.textContent = 'ด้านความเสี่ยง';
+    const select = document.createElement('select');
+    for (const k of available) {
+      const opt = document.createElement('option');
+      opt.value = k.kind;
+      opt.textContent = k.name;
+      select.appendChild(opt);
+    }
+    kindLabel.appendChild(document.createElement('br'));
+    kindLabel.appendChild(select);
+    box.appendChild(kindLabel);
+
+    const textLabel = document.createElement('label');
+    textLabel.textContent = 'ความเสี่ยงที่พบ';
+    const textInput = document.createElement('textarea');
+    textInput.rows = 3;
+    textInput.placeholder = 'อธิบายความเสี่ยงด้านนี้ของปัจจัยที่เลือก';
+    textLabel.appendChild(document.createElement('br'));
+    textLabel.appendChild(textInput);
+    box.appendChild(textLabel);
+
+    const actions = document.createElement('div');
+    actions.className = 'dp-modal-actions';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'ยกเลิก';
+    const okBtn = document.createElement('button');
+    okBtn.type = 'button';
+    okBtn.textContent = 'ปักธง';
+    actions.appendChild(cancelBtn);
+    actions.appendChild(okBtn);
+    box.appendChild(actions);
+
+    okBtn.addEventListener('click', () => {
+      overlay.remove();
+      resolve({ kind: select.value, text: textInput.value.trim() });
+    });
+    cancelBtn.addEventListener('click', () => {
+      overlay.remove();
+      resolve(null);
+    });
+
+    overlay.appendChild(box);
+    mount(overlay);
+    textInput.focus();
+  });
+}
+
 export function showHint(text) {
   if (!text) return;
   const overlay = backdrop();

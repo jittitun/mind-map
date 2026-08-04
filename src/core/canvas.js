@@ -3,6 +3,7 @@
 // การ drop หมายถึงอะไร (reparent/link/reorder) ให้ diagram module ตัดสินใจผ่าน onDrop()
 
 import { getDiagramModule } from '../diagrams/registry.js';
+import { focusEditBox } from '../diagrams/shared.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const DRAG_THRESHOLD = 5;
@@ -200,6 +201,13 @@ export class Canvas {
     ];
   }
 
+  // อัปเดตเฉพาะไฮไลต์ selection โดยไม่สร้าง DOM ใหม่ — ดูเหตุผลใน selection.js
+  updateSelectionClasses() {
+    for (const el of this.nodesLayer.querySelectorAll('.dp-node')) {
+      el.classList.toggle('is-selected', el.dataset.id === this.selection.selectedId);
+    }
+  }
+
   flashBlocked(id) {
     const el = this.nodesLayer.querySelector(`[data-id="${id}"]`);
     if (!el) return;
@@ -258,5 +266,9 @@ export class Canvas {
         onEditBlur: this._onEditBlur,
       }
     );
+
+    // ต้อง focus หลัง append เข้า DOM แล้วเท่านั้น (และทำแบบ synchronous — rAF ไม่ทำงานตอนแท็บไม่ถูก composite)
+    const editBox = this.nodesLayer.querySelector('.dp-node-edit');
+    if (editBox && document.activeElement !== editBox) focusEditBox(editBox);
   }
 }

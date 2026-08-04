@@ -12,20 +12,15 @@
     "h2": { "text": "กิจกรรม (Activity)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c2", "isColumnHeader": true },
     "h3": { "text": "ผลผลิต (Output)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c3", "isColumnHeader": true },
     "h4": { "text": "ผลลัพธ์ (Outcome)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c4", "isColumnHeader": true },
-    "h5": { "text": "ผลกระทบ (Impact)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c5", "isColumnHeader": true },
-    "i1": { "text": "ตัวชี้วัด: ความประหยัด (Economy) — ใช้ทรัพยากรคุ้มค่าหรือไม่", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c1" },
-    "i2": { "text": "ตัวชี้วัด: ประสิทธิภาพ (Efficiency) — ผลผลิตต่อทรัพยากรที่ใช้", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c2" },
-    "i3": { "text": "ตัวชี้วัด: ประสิทธิภาพ (Efficiency)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c3" },
-    "i4": { "text": "ตัวชี้วัด: ประสิทธิผล (Effectiveness) — บรรลุวัตถุประสงค์หรือไม่", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c4" },
-    "i5": { "text": "ตัวชี้วัด: ประสิทธิผล (Effectiveness)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c5" }
+    "h5": { "text": "ผลกระทบ (Impact)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "c5", "isColumnHeader": true }
   },
   "columns": [{ "id": "c0" }, { "id": "c1" }, { "id": "c2" }, { "id": "c3" }, { "id": "c4" }, { "id": "c5" }],
   "links": [],
   "themeMode": "screen",
   "template": {
     "name": "Logic Model + 3Es",
-    "description": "วัตถุประสงค์ + logic model 5 คอลัมน์ + ช่องตัวชี้วัดรายขั้น สอดคล้องกรอบ 3E (Economy / Efficiency / Effectiveness) สำหรับงานตรวจสอบผลสัมฤทธิ์",
-    "lockedNodeIds": ["h0", "h1", "h2", "h3", "h4", "h5", "i1", "i2", "i3", "i4", "i5"],
-    "hint": "คอลัมน์วัตถุประสงค์อยู่ซ้ายสุด ถัดไปเป็น 5 คอลัมน์ logic model — แถวบนสุดของแต่ละคอลัมน์ (ตั้งแต่ปัจจัยนำเข้า) คือช่องตัวชี้วัดตามกรอบ 3E (แก้ข้อความได้ ลบไม่ได้) เลือกการ์ดแล้วกด Enter เพื่อเพิ่มเนื้อหาในคอลัมน์เดียวกัน หรือ Tab เพื่อไปคอลัมน์ถัดไปพร้อมลูกศรเชื่อม"
+    "description": "วัตถุประสงค์ + logic model 5 ขั้น พร้อมปักธงความเสี่ยง 3E (Economy / Efficiency / Effectiveness) ลงรายปัจจัยได้",
+    "lockedNodeIds": ["h0", "h1", "h2", "h3", "h4", "h5"],
+    "hint": "เลือกหัวคอลัมน์แล้วกด Enter เพื่อเพิ่มการ์ดปัจจัย • กด Tab เพื่อสร้างการ์ดในคอลัมน์ถัดไปพร้อมลูกศรเชื่อม • ลากการ์ดวางบนการ์ดในคอลัมน์เดียวกันเพื่อจัดลำดับ วางข้ามคอลัมน์เพื่อสร้างลูกศรเชื่อม • เลือกการ์ดแล้วกดปุ่ม \"ปักธง 3E\" เพื่อระบุความเสี่ยงด้าน Economy/Efficiency/Effectiveness (ปักได้หลายด้านต่อหนึ่งปัจจัย) กล่องความเสี่ยงจะเชื่อมด้วยเส้นประและแก้ข้อความภายหลังได้"
   }
 }

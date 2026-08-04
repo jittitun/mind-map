@@ -112,6 +112,10 @@ export class DocumentStore extends EventTarget {
     if (!n || n.locked || n.isColumnHeader) return false;
     if (this.doc.type !== 'logicmodel' && n.parent === null) return false; // ห้ามลบ root ของ tree (mindmap/fishbone)
     const toDelete = this._collectSubtree(id);
+    // risk node ไม่ได้ผูกกับ parent tree จึงไม่ถูกเก็บโดย _collectSubtree — ต้องตามลบเอง
+    for (const [rid, rn] of Object.entries(this.doc.nodes)) {
+      if (rn.riskOf && toDelete.includes(rn.riskOf)) toDelete.push(rid);
+    }
     for (const did of toDelete) delete this.doc.nodes[did];
     if (n.parent !== null) this._normalizeOrder(n.parent);
     if (n.columnId != null) this._normalizeColumnOrder(n.columnId);
@@ -201,9 +205,48 @@ export class DocumentStore extends EventTarget {
 
   getCardsInColumn(columnId) {
     return Object.entries(this.doc.nodes)
-      .filter(([, n]) => n.columnId === columnId && !n.isColumnHeader)
+      .filter(([, n]) => n.columnId === columnId && !n.isColumnHeader && !n.riskOf)
       .sort((a, b) => a[1].order - b[1].order)
       .map(([id]) => id);
+  }
+
+  // --- ความเสี่ยง 3E: ปักธง Economy/Efficiency/Effectiveness ลงการ์ดปัจจัย ---
+  // risk เป็น node ปกติ (แก้ข้อความได้เหมือนกล่องอื่น) ที่มี riskOf ชี้การ์ดต้นทาง + riskKind บอกด้าน
+
+  getRisksOf(cardId) {
+    return Object.entries(this.doc.nodes)
+      .filter(([, n]) => n.riskOf === cardId)
+      .map(([id, n]) => ({ id, kind: n.riskKind }));
+  }
+
+  getRisksInColumn(columnId) {
+    return Object.entries(this.doc.nodes)
+      .filter(([, n]) => n.columnId === columnId && n.riskOf)
+      .sort((a, b) => a[1].order - b[1].order)
+      .map(([id]) => id);
+  }
+
+  addRisk(cardId, kind, text = '') {
+    const source = this.doc.nodes[cardId];
+    if (!source || source.isColumnHeader || source.riskOf) return null;
+    if (this.getRisksOf(cardId).some((r) => r.kind === kind)) return null; // ด้านนี้ปักธงไว้แล้ว
+    let id = genId();
+    while (this.doc.nodes[id]) id = genId();
+    const order = this.getRisksInColumn(source.columnId).length;
+    this.doc.nodes[id] = {
+      text,
+      parent: null,
+      order,
+      collapsed: false,
+      locked: false,
+      note: '',
+      style: {},
+      columnId: source.columnId,
+      riskOf: cardId,
+      riskKind: kind,
+    };
+    this._commit();
+    return id;
   }
 
   addCard(columnId, text = '') {

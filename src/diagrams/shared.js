@@ -60,7 +60,8 @@ export function measureNodeBox(text) {
   return { lines, width, height };
 }
 
-function placeCaretAtEnd(el) {
+// เรียกหลัง append กล่องแก้ไขเข้า DOM แล้วเท่านั้น (focus ใช้ไม่ได้กับ element ที่ยังไม่อยู่ใน document)
+export function focusEditBox(el) {
   el.focus();
   const range = document.createRange();
   range.selectNodeContents(el);
@@ -98,7 +99,6 @@ export function renderNodeBox(store, selection, id, pos, handlers, extraClass = 
     div.textContent = node.text;
     fo.appendChild(div);
     g.appendChild(fo);
-    requestAnimationFrame(() => placeCaretAtEnd(div));
     div.addEventListener('keydown', (e) => handlers.onEditKeydown(e, id, div));
     div.addEventListener('blur', () => handlers.onEditBlur(id, div));
   } else {
@@ -129,8 +129,37 @@ export function renderNodeBox(store, selection, id, pos, handlers, extraClass = 
     g.appendChild(toggle);
   }
 
+  // ธงบอกด้านความเสี่ยงที่ปักไว้บนการ์ดนี้ (logic model 3E)
+  if (pos.badges?.length) {
+    pos.badges.forEach((badge, i) => {
+      const bx = pos.width - BADGE_W / 2 - 4 - i * (BADGE_W + 3);
+      const chip = document.createElementNS(NS, 'rect');
+      chip.setAttribute('x', bx - BADGE_W / 2);
+      chip.setAttribute('y', -BADGE_H / 2);
+      chip.setAttribute('width', BADGE_W);
+      chip.setAttribute('height', BADGE_H);
+      chip.setAttribute('rx', 5);
+      chip.setAttribute('fill', badge.color);
+      g.appendChild(chip);
+
+      const label = document.createElementNS(NS, 'text');
+      label.setAttribute('x', bx);
+      label.setAttribute('y', BADGE_H / 2 - 4);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('class', 'dp-badge-label');
+      label.textContent = badge.label;
+      const title = document.createElementNS(NS, 'title');
+      title.textContent = badge.title || badge.label;
+      label.appendChild(title);
+      g.appendChild(label);
+    });
+  }
+
   return g;
 }
+
+export const BADGE_W = 26;
+export const BADGE_H = 16;
 
 // --- วาดลง Canvas 2D (สำหรับ export PNG/clipboard — ดูเหตุผลที่ไม่ผ่าน SVG→Image ใน png.js) ---
 
@@ -159,4 +188,17 @@ export function drawNodeBox2D(ctx, pos, theme, isRoot = false) {
   pos.lines.forEach((line, i) => {
     ctx.fillText(line, pos.x + pos.width / 2, pos.y + NODE_PADDING_Y + (i + 0.8) * LINE_HEIGHT);
   });
+
+  if (pos.badges?.length) {
+    pos.badges.forEach((badge, i) => {
+      const bx = pos.x + pos.width - BADGE_W / 2 - 4 - i * (BADGE_W + 3);
+      ctx.fillStyle = badge.color;
+      roundRectPath2D(ctx, bx - BADGE_W / 2, pos.y - BADGE_H / 2, BADGE_W, BADGE_H, 5);
+      ctx.fill();
+      ctx.fillStyle = '#111';
+      ctx.font = `600 11px ${NODE_FONT.split(' ').slice(1).join(' ')}`;
+      ctx.fillText(badge.label, bx, pos.y + BADGE_H / 2 - 4);
+    });
+    ctx.font = NODE_FONT;
+  }
 }

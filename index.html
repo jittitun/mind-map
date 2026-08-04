@@ -67,6 +67,9 @@
     .dp-edge { fill: none; stroke: var(--color-line, #5c7a9e); stroke-width: 2px; }
     .dp-edge.dp-spine { stroke-width: 3px; }
     .dp-edge.dp-link { stroke: var(--color-accent, #c9a227); marker-end: url(#dp-arrowhead); }
+    .dp-edge.dp-risk-link { stroke-dasharray: 6 5; stroke-width: 2px; }
+    .dp-node.is-risk rect { stroke-dasharray: 6 5; stroke-width: 2px; }
+    .dp-badge-label { font-size: 11px; font-weight: 600; fill: #111; font-family: var(--font-body); user-select: none; }
 
     .dp-modal-backdrop {
       position: fixed;
@@ -233,7 +236,8 @@
     import { attachKeyboard } from './src/core/keyboard.js';
     import { createToolbar } from './src/ui/toolbar.js';
     import { applyTheme } from './src/ui/theme.js';
-    import { showTemplateGallery, showSaveAsTemplateForm, showHint, showSearchDialog } from './src/ui/dialogs.js';
+    import { showTemplateGallery, showSaveAsTemplateForm, showHint, showSearchDialog, showRiskFlagForm } from './src/ui/dialogs.js';
+    import { RISK_KINDS } from './src/diagrams/logicmodel.js';
     import { loadTemplateIndex, loadTemplateDoc, buildTemplateDoc } from './src/ui/templates.js';
     import { exportPngFile, exportSvgFile } from './src/export/png.js';
     import { copyDiagramToClipboard } from './src/export/clipboard.js';
@@ -318,8 +322,9 @@
       if (e.key === 'Escape' && presenting) exitPresentation();
     });
 
-    selection.addEventListener('change', () => {
-      render();
+    selection.addEventListener('change', (e) => {
+      if (e.detail?.editingChanged) render();
+      else canvas.updateSelectionClasses();
       outlineController?.render();
       if (presenting && selection.selectedId) canvas.centerOnNode(selection.selectedId, { zoom: 1.3, duration: 450 });
     });
@@ -369,6 +374,23 @@
       },
       toggleLock() {
         if (selection.selectedId) store.toggleLock(selection.selectedId);
+      },
+      async flagRisk() {
+        if (store.doc.type !== 'logicmodel') {
+          alert('ปักธง 3E ใช้ได้เฉพาะแผนผัง Logic Model');
+          return;
+        }
+        const id = selection.selectedId;
+        const node = id && store.getNode(id);
+        if (!node || node.isColumnHeader || node.riskOf) {
+          alert('เลือกการ์ดปัจจัยในคอลัมน์ก่อน (ไม่ใช่หัวคอลัมน์หรือกล่องความเสี่ยง)');
+          return;
+        }
+        const used = store.getRisksOf(id).map((r) => r.kind);
+        const result = await showRiskFlagForm(RISK_KINDS, used);
+        if (!result) return;
+        const riskId = store.addRisk(id, result.kind, result.text);
+        if (riskId && !result.text) selection.startEditing(riskId);
       },
       async openFile() {
         try {
