@@ -1,10 +1,16 @@
 // Export Engine: HTML แบบโต้ตอบได้ไฟล์เดียว — ผู้รับเปิดดูได้เลยโดยไม่ต้องมี app และไม่ต้องต่อเน็ต
 // วิธีทำ: ดึงซอร์สของ store.js/shared.js/diagram module ของ type ปัจจุบัน (ที่แอปใช้จริงอยู่แล้ว)
 // มาตัด import/export ออกแล้วต่อกันเป็น <script> เดียว พร้อม viewer bootstrap แบบ pan/zoom/พับกิ่ง
-// (ดูอย่างเดียว ไม่มีแก้ไข) — mindmap ต้องฝัง d3-flextree (UMD build ที่ bundle ตัวเองสมบูรณ์) เพิ่มด้วย
+// (ดูอย่างเดียว ไม่มีแก้ไข) — ถ้าโมดูลไหนใช้ d3-flextree ต้องฝัง UMD build ลงไปด้วย
 // เพื่อให้ไฟล์ผลลัพธ์ทำงาน offline ได้ 100% ตามหลักการของโปรเจกต์
 
 const D3_FLEXTREE_UMD_URL = 'https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js';
+
+const DIAGRAM_MODULE_PATHS = {
+  mindmap: './src/diagrams/mindmap.js',
+  fishbone: './src/diagrams/fishbone.js',
+  logicmodel: './src/diagrams/logicmodel.js',
+};
 
 function stripModuleSyntax(src) {
   return src.replace(/^import\s+.*?;\s*$/gm, '').replace(/^export\s+/gm, '');
@@ -20,27 +26,34 @@ async function fetchStripped(path) {
 }
 
 async function buildBundleScript(type) {
-  const [storeSrc, sharedSrc] = await Promise.all([
+  const [storeSrc, sharedSrc, diagramSrc] = await Promise.all([
     fetchStripped('./src/core/store.js'),
     fetchStripped('./src/diagrams/shared.js'),
+    fetchStripped(DIAGRAM_MODULE_PATHS[type] || DIAGRAM_MODULE_PATHS.mindmap),
   ]);
 
   const parts = [];
-  if (type === 'mindmap') {
+  // ตรวจจากซอร์สจริงว่าต้องใช้ flextree ไหม แทนการ hardcode ตามชนิดแผนผัง
+  // (เดิม hardcode ไว้เฉพาะ mindmap พอ fishbone เปลี่ยนมาใช้ flextree ไฟล์ที่ export จึงพังเพราะหา flextree ไม่เจอ)
+  if (/\bflextree\s*\(/.test(diagramSrc)) {
     parts.push(await fetchText(D3_FLEXTREE_UMD_URL));
     parts.push('var flextree = d3.flextree;');
-    parts.push(await fetchStripped('./src/diagrams/mindmap.js'));
-  } else if (type === 'fishbone') {
-    parts.push(await fetchStripped('./src/diagrams/fishbone.js'));
-  } else {
-    parts.push(await fetchStripped('./src/diagrams/logicmodel.js'));
   }
+  parts.push(diagramSrc);
 
   return `${storeSrc}\n${sharedSrc}\n${parts.join('\n')}`;
 }
 
 const VIEWER_BOOTSTRAP = `
 (function () {
+  // กันหน้าจอว่างเปล่าแบบไม่รู้สาเหตุ: ถ้า render พังให้แสดงข้อความบอกบนหน้าเลย
+  window.addEventListener('error', function (e) {
+    var box = document.createElement('div');
+    box.className = 'dp-error';
+    box.textContent = 'แสดงแผนผังไม่สำเร็จ: ' + (e.message || 'เกิดข้อผิดพลาด');
+    document.body.appendChild(box);
+  });
+
   var doc = window.__DIAGRAM_DATA__;
   var store = new DocumentStore(doc);
   var selection = { selectedId: null, editingId: null };
@@ -135,6 +148,7 @@ html, body { margin:0; height:100%; background:#040f1c; overflow:hidden; font-fa
 .dp-edge.dp-spine { stroke-width:3px; }
 .dp-edge.dp-link { stroke:#c9a227; }
 .dp-hint { position:fixed; bottom:10px; left:10px; color:#5c7a9e; font-size:11px; font-family:sans-serif; }
+.dp-error { position:fixed; top:12px; left:12px; right:12px; background:#5a1c1c; color:#ffd9d9; border:1px solid #e05252; border-radius:8px; padding:10px 14px; font-size:13px; }
 `;
 
 export async function buildInteractiveHtml(store) {
