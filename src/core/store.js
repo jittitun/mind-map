@@ -126,7 +126,7 @@ export class DocumentStore extends EventTarget {
   }
 
   moveNode(id, newParentId) {
-    if (this.doc.type === 'logicmodel') return false; // logic model ย้ายด้วย moveCardToColumn ไม่ใช่ moveNode (ไม่มี parent tree)
+    if (this.isColumnBased()) return false; // ชนิดที่ใช้คอลัมน์/แถว ย้ายด้วย moveCardToColumn ไม่ใช่ moveNode (ไม่มี parent tree)
     const n = this.doc.nodes[id];
     if (!n || n.locked) return false;
     if (this.isDescendant(id, newParentId)) return false; // กัน cycle: ห้ามย้ายเข้าไปในกิ่งลูกหลานตัวเอง
@@ -179,7 +179,7 @@ export class DocumentStore extends EventTarget {
   }
 
   getInitialSelection() {
-    if (this.doc.type === 'logicmodel') {
+    if (this.isColumnBased()) {
       const firstCol = this.getColumns()[0];
       if (firstCol) {
         const header = this.getColumnHeader(firstCol.id);
@@ -193,6 +193,11 @@ export class DocumentStore extends EventTarget {
   }
 
   // --- Logic model: คอลัมน์, การ์ด, links (node สังกัดคอลัมน์แทนสังกัดพ่อ) ---
+
+  // ชนิดแผนผังที่จัดด้วยคอลัมน์/แถว (logic model, ตารางข้อตรวจพบ) — ไม่มีโครง parent tree
+  isColumnBased() {
+    return (this.doc.columns || []).length > 0;
+  }
 
   getColumns() {
     return this.doc.columns || [];

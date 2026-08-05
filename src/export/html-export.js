@@ -10,6 +10,7 @@ const DIAGRAM_MODULE_PATHS = {
   mindmap: './src/diagrams/mindmap.js',
   fishbone: './src/diagrams/fishbone.js',
   logicmodel: './src/diagrams/logicmodel.js',
+  findings: './src/diagrams/findings.js',
 };
 
 function stripModuleSyntax(src) {

@@ -1,0 +1,25 @@
+{
+  "formatVersion": 1,
+  "type": "findings",
+  "meta": {
+    "title": "ตารางข้อตรวจพบ",
+    "created": "2026-08-04T00:00:00.000Z",
+    "modified": "2026-08-04T00:00:00.000Z"
+  },
+  "nodes": {
+    "f1": { "text": "เกณฑ์ (Criteria)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "r1", "isColumnHeader": true },
+    "f2": { "text": "สภาพที่พบ (Condition)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "r2", "isColumnHeader": true },
+    "f3": { "text": "สาเหตุ (Cause)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "r3", "isColumnHeader": true },
+    "f4": { "text": "ผลกระทบ (Effect)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "r4", "isColumnHeader": true },
+    "f5": { "text": "ข้อเสนอแนะ (Recommendation)", "parent": null, "order": 0, "collapsed": false, "locked": true, "note": "", "style": {}, "columnId": "r5", "isColumnHeader": true }
+  },
+  "columns": [{ "id": "r1" }, { "id": "r2" }, { "id": "r3" }, { "id": "r4" }, { "id": "r5" }],
+  "links": [],
+  "themeMode": "screen",
+  "template": {
+    "name": "ตารางข้อตรวจพบ",
+    "description": "องค์ประกอบข้อตรวจพบมาตรฐาน 5 แถว: เกณฑ์ / สภาพที่พบ / สาเหตุ / ผลกระทบ / ข้อเสนอแนะ — รูปแบบตารางพร้อมใส่รายงาน",
+    "lockedNodeIds": ["f1", "f2", "f3", "f4", "f5"],
+    "hint": "เลือกป้ายชื่อแถวแล้วกด Enter เพื่อเพิ่มกล่องเนื้อหาในแถวนั้น • กด Tab เพื่อลงไปแถวถัดไป • ลูกศรซ้าย-ขวาเดินในแถวเดียวกัน ขึ้น-ลงข้ามแถว • ลากกล่องวางบนกล่องอื่นเพื่อจัดลำดับหรือย้ายแถว • ป้ายชื่อ 5 แถวถูกล็อกไม่ให้ลบ แต่แก้ข้อความได้"
+  }
+}

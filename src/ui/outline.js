@@ -70,7 +70,7 @@ export function createOutlinePanel(container, store, selection, handlers) {
 
   function render() {
     rows.textContent = '';
-    if (store.doc.type === 'logicmodel') {
+    if (store.isColumnBased()) {
       rows.textContent = 'โครงร่างใช้ได้เฉพาะ mindmap และ fishbone';
       return;
     }

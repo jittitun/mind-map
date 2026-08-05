@@ -27,6 +27,13 @@
       "name": "Logic Model + 3Es",
       "file": "logicmodel-3e.json",
       "description": "วัตถุประสงค์ + 5 คอลัมน์ + ช่องตัวชี้วัดรายขั้น สอดคล้องกรอบ 3E (Economy/Efficiency/Effectiveness)"
+    },
+    {
+      "id": "findings-audit",
+      "type": "findings",
+      "name": "ตารางข้อตรวจพบ",
+      "file": "findings-audit.json",
+      "description": "5 แถวมาตรฐาน: เกณฑ์ / สภาพที่พบ / สาเหตุ / ผลกระทบ / ข้อเสนอแนะ — รูปแบบตารางพร้อมใส่รายงาน"
     }
   ]
 }

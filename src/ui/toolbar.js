@@ -20,6 +20,7 @@ export function createToolbar(container, actions) {
   btn('บันทึกเป็น Template', 'บันทึกเอกสารนี้เป็น template ใหม่', () => actions.saveAsTemplate());
   btn('ล็อก/ปลดล็อก', 'ล็อก/ปลดล็อก node ที่เลือก (Ctrl+L)', () => actions.toggleLock());
   btn('ปักธง 3E', 'ปักธงความเสี่ยง Economy/Efficiency/Effectiveness ลงการ์ดที่เลือก (logic model)', () => actions.flagRisk());
+  btn('ถาม Why ต่อ', 'ไล่สาเหตุอีกชั้นจากกล่องที่เลือก (5 Whys — ก้างปลา)', () => actions.askWhy());
   btn('เลิกทำ', 'Undo (Ctrl+Z)', () => actions.undo());
   btn('ทำซ้ำ', 'Redo (Ctrl+Y)', () => actions.redo());
   btn('PNG', 'ส่งออกภาพ PNG', () => actions.exportPng());

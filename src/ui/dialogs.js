@@ -246,10 +246,43 @@ export function showRiskFlagForm(kinds, usedKinds) {
     kindLabel.appendChild(select);
     box.appendChild(kindLabel);
 
+    // ชิปรูปแบบความเสี่ยงที่เจอบ่อยของด้านนั้น — กดชิปเดียวปักธงเสร็จเลย (เร็วพอสำหรับระดมสมองสด)
+    const presetLabel = document.createElement('div');
+    presetLabel.className = 'dp-preset-label';
+    presetLabel.textContent = 'รูปแบบที่พบบ่อย (กดเพื่อปักธงทันที)';
+    box.appendChild(presetLabel);
+
+    const presetRow = document.createElement('div');
+    presetRow.className = 'dp-preset-row';
+    box.appendChild(presetRow);
+
+    function finish(kind, text) {
+      overlay.remove();
+      resolve({ kind, text });
+    }
+
+    function renderPresets() {
+      presetRow.textContent = '';
+      const current = available.find((k) => k.kind === select.value);
+      const presets = current?.presets || [];
+      presetLabel.style.display = presets.length ? '' : 'none';
+      for (const preset of presets) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'dp-preset-chip';
+        chip.textContent = preset;
+        chip.style.borderColor = current.color;
+        chip.addEventListener('click', () => finish(current.kind, preset));
+        presetRow.appendChild(chip);
+      }
+    }
+    select.addEventListener('change', renderPresets);
+    renderPresets();
+
     const textLabel = document.createElement('label');
-    textLabel.textContent = 'ความเสี่ยงที่พบ';
+    textLabel.textContent = 'หรือพิมพ์เอง';
     const textInput = document.createElement('textarea');
-    textInput.rows = 3;
+    textInput.rows = 2;
     textInput.placeholder = 'อธิบายความเสี่ยงด้านนี้ของปัจจัยที่เลือก';
     textLabel.appendChild(document.createElement('br'));
     textLabel.appendChild(textInput);
@@ -267,10 +300,7 @@ export function showRiskFlagForm(kinds, usedKinds) {
     actions.appendChild(okBtn);
     box.appendChild(actions);
 
-    okBtn.addEventListener('click', () => {
-      overlay.remove();
-      resolve({ kind: select.value, text: textInput.value.trim() });
-    });
+    okBtn.addEventListener('click', () => finish(select.value, textInput.value.trim()));
     cancelBtn.addEventListener('click', () => {
       overlay.remove();
       resolve(null);

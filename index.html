@@ -66,6 +66,7 @@
     .dp-toggle { fill: var(--color-accent, #c9a227); cursor: pointer; }
     .dp-edge { fill: none; stroke: var(--color-line, #5c7a9e); stroke-width: 2px; }
     .dp-edge.dp-spine { stroke-width: 3px; }
+    .dp-edge.dp-row-rule { stroke-width: 1px; opacity: 0.45; }
     .dp-edge.dp-link { stroke: var(--color-accent, #c9a227); marker-end: url(#dp-arrowhead); }
     .dp-edge.dp-risk-link { stroke-dasharray: 6 5; stroke-width: 2px; }
     .dp-node.is-risk rect { stroke-dasharray: 6 5; stroke-width: 2px; }
@@ -125,6 +126,22 @@
     }
     .dp-modal-item:hover { border-color: var(--color-accent, #c9a227); }
     .dp-modal-item span { font-size: 12px; opacity: 0.8; }
+    .dp-preset-label { font-size: 12px; opacity: 0.75; }
+    .dp-preset-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dp-preset-chip {
+      font-family: var(--font-body);
+      background: var(--color-background, #040f1c);
+      color: var(--color-text, #fff);
+      border: 1px solid var(--color-line, #5c7a9e);
+      border-left-width: 4px;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: left;
+    }
+    .dp-preset-chip:hover { background: rgba(255, 255, 255, 0.08); }
+
     .dp-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
     .dp-modal button, .dp-modal-cancel {
       font-family: var(--font-body);
@@ -239,6 +256,7 @@
     import { showTemplateGallery, showSaveAsTemplateForm, showHint, showSearchDialog, showRiskFlagForm } from './src/ui/dialogs.js';
     import { RISK_KINDS } from './src/diagrams/logicmodel.js';
     import { loadTemplateIndex, loadTemplateDoc, buildTemplateDoc } from './src/ui/templates.js';
+    import { askWhy as askWhyOnFishbone } from './src/diagrams/fishbone.js';
     import { exportPngFile, exportSvgFile } from './src/export/png.js';
     import { copyDiagramToClipboard } from './src/export/clipboard.js';
     import { exportPdfFile } from './src/export/pdf.js';
@@ -391,6 +409,20 @@
         if (!result) return;
         const riskId = store.addRisk(id, result.kind, result.text);
         if (riskId && !result.text) selection.startEditing(riskId);
+      },
+      askWhy() {
+        if (store.doc.type !== 'fishbone') {
+          alert('ถาม Why ต่อ ใช้ได้เฉพาะผังก้างปลา');
+          return;
+        }
+        const id = selection.selectedId;
+        if (!id) {
+          alert('เลือกกล่องสาเหตุที่ต้องการไล่ต่อก่อน');
+          return;
+        }
+        const newId = askWhyOnFishbone(store, id);
+        if (newId) selection.startEditing(newId);
+        else alert('เลือกกล่องหมวดหรือกล่องสาเหตุ (ไม่ใช่หัวปลา) เพื่อไล่สาเหตุต่อ');
       },
       async openFile() {
         try {

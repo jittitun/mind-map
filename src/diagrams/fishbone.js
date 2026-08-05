@@ -16,6 +16,13 @@ const CLUSTER_GAP = 60; // ระยะระหว่างหมวดฝั�
 const TICK_LEN = 30; // ความยาว tick แนวนอนจากเส้นก้างไปยังกล่องสาเหตุชั้นแรก
 const LEAN = 0.5; // ความเอียงของก้าง: เลื่อนซ้ายเท่าไรต่อการขึ้น 1 หน่วย
 const HEAD_GAP = 90;
+const WHY_BADGE_COLOR = '#b0bec5'; // สีกลางๆ ให้ต่างจากธง 3E ของ logic model ชัดเจน
+
+// ถามทำไมต่ออีกชั้นจาก node ที่เลือก (ไล่ 5 Whys) — คืน id ของกล่องใหม่
+export function askWhy(store, id) {
+  if (id === store.getRootId()) return null; // หัวปลาคือตัวปัญหา ไม่ใช่จุดเริ่มไล่เหตุ
+  return store.addChild(id, '');
+}
 
 export function createChild(store, id, text) {
   return store.addChild(id, text);
@@ -81,7 +88,8 @@ function layoutSubtree(store, rootChildId) {
     const s = sizes.get(n.data.id);
     const x = -n.y - s.width;
     const y = n.x;
-    rel.set(n.data.id, { x, y, width: s.width, height: s.height, lines: s.lines });
+    // สาเหตุชั้นแรก (ลูกของหมวด) = Why 1, ลึกลงไปนับต่อ — ใช้บอกว่าไล่ 5 Whys ไปถึงชั้นไหนแล้ว
+    rel.set(n.data.id, { x, y, width: s.width, height: s.height, lines: s.lines, whyLevel: n.depth + 1 });
     minX = Math.min(minX, x);
     minY = Math.min(minY, y);
     maxY = Math.max(maxY, y + s.height);
@@ -173,6 +181,8 @@ export function computeLayout(store) {
           hasChildren: store.getChildren(id).length > 0,
           collapsed: store.getNode(id).collapsed,
           parentId: store.getParent(id),
+          // แสดงชั้น Why ตั้งแต่ชั้น 2 ขึ้นไป — ก้างปลาชั้นเดียวจะไม่มีป้ายรกเต็มผัง
+          badges: r.whyLevel >= 2 ? [{ label: `W${r.whyLevel}`, title: `Why ${r.whyLevel}`, color: WHY_BADGE_COLOR }] : null,
         });
         minBoxX = Math.min(minBoxX, offsetX + r.x);
       }

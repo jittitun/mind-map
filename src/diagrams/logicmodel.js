@@ -12,10 +12,29 @@ const CARD_START_Y = HEADER_HEIGHT + 30;
 const RISK_ZONE_GAP = 70; // ระยะจากแถวการ์ดสุดท้ายลงมาถึงโซนความเสี่ยง
 
 // ธง 3E ที่ปักลงการ์ดปัจจัยได้ (ปักได้หลายด้านต่อหนึ่งการ์ด)
+// presets = รูปแบบความเสี่ยงที่เจอบ่อยในแต่ละด้าน กดเลือกได้เลยไม่ต้องพิมพ์ (ยังพิมพ์เองได้)
 export const RISK_KINDS = [
-  { kind: 'economy', label: 'Ec', name: 'ความประหยัด (Economy)', color: '#4fc3f7' },
-  { kind: 'efficiency', label: 'Ef', name: 'ประสิทธิภาพ (Efficiency)', color: '#ffb74d' },
-  { kind: 'effectiveness', label: 'Es', name: 'ประสิทธิผล (Effectiveness)', color: '#81c784' },
+  {
+    kind: 'economy',
+    label: 'Ec',
+    name: 'ความประหยัด (Economy)',
+    color: '#4fc3f7',
+    presets: ['Over-price — ราคาสูงเกินจริง', 'Over-spec — คุณลักษณะเกินความจำเป็น', 'Over-stock — จัดหาเกินความต้องการ'],
+  },
+  {
+    kind: 'efficiency',
+    label: 'Ef',
+    name: 'ประสิทธิภาพ (Efficiency)',
+    color: '#ffb74d',
+    presets: ['ไม่มีคุณภาพ', 'ล่าช้ากว่าแผน'],
+  },
+  {
+    kind: 'effectiveness',
+    label: 'Es',
+    name: 'ประสิทธิผล (Effectiveness)',
+    color: '#81c784',
+    presets: ['ไม่ได้ใช้ประโยชน์'],
+  },
 ];
 
 export function getRiskKind(kind) {
