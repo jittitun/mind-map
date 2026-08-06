@@ -117,7 +117,8 @@ export function renderNodeBox(store, selection, id, pos, handlers, extraClass = 
 
   if (pos.hasChildren) {
     const toggle = document.createElementNS(NS, 'circle');
-    toggle.setAttribute('cx', pos.width);
+    // กิ่งฝั่งซ้ายกางออกทางซ้าย ปุ่มพับ/กางจึงต้องอยู่ขอบซ้ายให้ตรงทิศที่กิ่งยื่นออกไป
+    toggle.setAttribute('cx', pos.toggleOnLeft ? 0 : pos.width);
     toggle.setAttribute('cy', pos.height / 2);
     toggle.setAttribute('r', 6);
     toggle.setAttribute('class', 'dp-toggle');

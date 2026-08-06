@@ -39,31 +39,37 @@ export const spacing = {
   xl: '32px',
 };
 
-// ธีมจอ (พื้นเข้ม สำหรับโปรเจกเตอร์) และธีมพิมพ์ (พื้นขาว หมึกประหยัด)
+// ธีมพิมพ์ (พื้นขาว — ธีมหลัก) และธีมจอ (พื้นเข้ม สำหรับโปรเจกเตอร์)
+// accentContrast = สีตัวอักษรที่อ่านออกเมื่อวางบนพื้นสี accent (gold อ่อน→ตัวเข้ม, gold เข้ม→ตัวขาว)
 export const themes = {
-  screen: {
-    background: colors.navy[900],
-    surface: colors.navy[700],
-    text: colors.neutral.white,
-    accent: colors.gold[500],
-    line: colors.navy[300],
-  },
   print: {
     background: colors.neutral.white,
     surface: colors.neutral.gray100,
     text: colors.navy[900],
     accent: colors.gold[700],
+    accentContrast: colors.neutral.white,
     line: colors.neutral.gray500,
+  },
+  screen: {
+    background: colors.navy[900],
+    surface: colors.navy[700],
+    text: colors.neutral.white,
+    accent: colors.gold[500],
+    accentContrast: colors.neutral.black,
+    line: colors.navy[300],
   },
 };
 
+export const DEFAULT_THEME_MODE = 'print';
+
 export function applyTheme(mode) {
-  const theme = themes[mode] ?? themes.screen;
+  const theme = themes[mode] ?? themes[DEFAULT_THEME_MODE];
   const root = document.documentElement;
   root.style.setProperty('--color-background', theme.background);
   root.style.setProperty('--color-surface', theme.surface);
   root.style.setProperty('--color-text', theme.text);
   root.style.setProperty('--color-accent', theme.accent);
+  root.style.setProperty('--color-accent-contrast', theme.accentContrast);
   root.style.setProperty('--color-line', theme.line);
   root.style.setProperty('--font-body', fonts.body);
   root.dataset.theme = mode;

@@ -21,6 +21,7 @@ export function createToolbar(container, actions) {
   btn('ล็อก/ปลดล็อก', 'ล็อก/ปลดล็อก node ที่เลือก (Ctrl+L)', () => actions.toggleLock());
   btn('ปักธง 3E', 'ปักธงความเสี่ยง Economy/Efficiency/Effectiveness ลงการ์ดที่เลือก (logic model)', () => actions.flagRisk());
   btn('ถาม Why ต่อ', 'ไล่สาเหตุอีกชั้นจากกล่องที่เลือก (5 Whys — ก้างปลา)', () => actions.askWhy());
+  btn('กิ่งซ้าย/ขวา', 'ย้ายกิ่งที่เลือกไปอีกฝั่ง — หรือเลือกหัวข้อหลักเพื่อเพิ่มกิ่งใหม่ทางซ้าย (mindmap)', () => actions.switchSide());
   btn('เลิกทำ', 'Undo (Ctrl+Z)', () => actions.undo());
   btn('ทำซ้ำ', 'Redo (Ctrl+Y)', () => actions.redo());
   btn('PNG', 'ส่งออกภาพ PNG', () => actions.exportPng());

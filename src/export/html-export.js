@@ -4,6 +4,8 @@
 // (ดูอย่างเดียว ไม่มีแก้ไข) — ถ้าโมดูลไหนใช้ d3-flextree ต้องฝัง UMD build ลงไปด้วย
 // เพื่อให้ไฟล์ผลลัพธ์ทำงาน offline ได้ 100% ตามหลักการของโปรเจกต์
 
+import { themes, DEFAULT_THEME_MODE } from '../ui/theme.js';
+
 const D3_FLEXTREE_UMD_URL = 'https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js';
 
 const DIAGRAM_MODULE_PATHS = {
@@ -135,28 +137,36 @@ const VIEWER_BOOTSTRAP = `
 })();
 `;
 
-const VIEWER_CSS = `
-html, body { margin:0; height:100%; background:#040f1c; overflow:hidden; font-family:'Sarabun','Noto Sans Thai',sans-serif; }
+// สร้าง CSS จากธีมของเอกสารจริง — ไม่ hardcode สีเข้ม ไม่งั้น export จากธีมขาวแล้วเปิดมาได้พื้นดำ
+function viewerCss(theme) {
+  return `
+html, body { margin:0; height:100%; background:${theme.background}; overflow:hidden; font-family:'Sarabun','Noto Sans Thai',sans-serif; }
 #dp-svg { width:100%; height:100%; display:block; cursor:grab; }
-.dp-node rect { fill:#071d33; stroke:#5c7a9e; stroke-width:1.5px; }
-.dp-node text { fill:#fff; font-size:16px; font-family:'Sarabun','Noto Sans Thai',sans-serif; user-select:none; }
-.dp-node.is-selected rect { stroke:#c9a227; stroke-width:3px; }
+.dp-node rect { fill:${theme.surface}; stroke:${theme.line}; stroke-width:1.5px; }
+.dp-node text { fill:${theme.text}; font-size:16px; font-family:'Sarabun','Noto Sans Thai',sans-serif; user-select:none; }
+.dp-node.is-selected rect { stroke:${theme.accent}; stroke-width:3px; }
 .dp-node.is-locked rect { stroke-dasharray:4 3; }
-.dp-node.is-header rect { fill:#c9a227; stroke:none; }
-.dp-node.is-header text { fill:#111; font-weight:600; }
-.dp-toggle { fill:#c9a227; cursor:pointer; }
-.dp-edge { fill:none; stroke:#5c7a9e; stroke-width:2px; }
+.dp-node.is-risk rect { stroke-dasharray:6 5; stroke-width:2px; }
+.dp-node.is-header rect { fill:${theme.accent}; stroke:none; }
+.dp-node.is-header text { fill:${theme.accentContrast}; font-weight:600; }
+.dp-toggle { fill:${theme.accent}; cursor:pointer; }
+.dp-edge { fill:none; stroke:${theme.line}; stroke-width:2px; }
 .dp-edge.dp-spine { stroke-width:3px; }
-.dp-edge.dp-link { stroke:#c9a227; }
-.dp-hint { position:fixed; bottom:10px; left:10px; color:#5c7a9e; font-size:11px; font-family:sans-serif; }
+.dp-edge.dp-row-rule { stroke-width:1px; opacity:0.45; }
+.dp-edge.dp-link { stroke:${theme.accent}; }
+.dp-edge.dp-risk-link { stroke-dasharray:6 5; stroke-width:2px; }
+.dp-badge-label { font-size:11px; font-weight:600; fill:#111; font-family:'Sarabun','Noto Sans Thai',sans-serif; user-select:none; }
+.dp-hint { position:fixed; bottom:10px; left:10px; color:${theme.line}; font-size:11px; font-family:sans-serif; }
 .dp-error { position:fixed; top:12px; left:12px; right:12px; background:#5a1c1c; color:#ffd9d9; border:1px solid #e05252; border-radius:8px; padding:10px 14px; font-size:13px; }
 `;
+}
 
 export async function buildInteractiveHtml(store) {
   const type = store.doc.type;
   const bundleSrc = await buildBundleScript(type);
   const title = (store.doc.meta.title || 'Diagram+').replace(/</g, '&lt;');
   const docJson = JSON.stringify(store.doc).replace(/</g, '\\u003c');
+  const theme = themes[store.doc.themeMode] || themes[DEFAULT_THEME_MODE];
 
   return `<!doctype html>
 <html lang="th">
@@ -164,7 +174,7 @@ export async function buildInteractiveHtml(store) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${title}</title>
-<style>${VIEWER_CSS}</style>
+<style>${viewerCss(theme)}</style>
 </head>
 <body>
 <svg id="dp-svg"><g id="dp-viewport"><g id="dp-edges"></g><g id="dp-nodes"></g></g></svg>

@@ -17,7 +17,7 @@
   },
   "columns": [],
   "links": [],
-  "themeMode": "screen",
+  "themeMode": "print",
   "template": {
     "name": "Fishbone 6M",
     "description": "ผังก้างปลาวิเคราะห์สาเหตุแบบ 6M มาตรฐานสากล (Man/Machine/Method/Material/Measurement/Environment)",

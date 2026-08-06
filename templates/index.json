@@ -5,14 +5,7 @@
       "type": "mindmap",
       "name": "Mindmap เปล่า",
       "file": "mindmap-empty.json",
-      "description": "เริ่มต้นจากศูนย์"
-    },
-    {
-      "id": "mindmap-audit-issue",
-      "type": "mindmap",
-      "name": "ประเด็นการตรวจสอบ",
-      "file": "mindmap-audit-issue.json",
-      "description": "โครง 5 องค์ประกอบมาตรฐาน: สภาพที่พบ / เกณฑ์ / สาเหตุ / ผลกระทบ / ข้อเสนอแนะ"
+      "description": "เริ่มต้นจากศูนย์ — กิ่งกางขวาเป็นค่าเริ่มต้น ย้ายไปกางซ้ายได้ด้วยปุ่ม \"กิ่งซ้าย/ขวา\""
     },
     {
       "id": "fishbone-6m",
@@ -20,20 +13,6 @@
       "name": "Fishbone 6M",
       "file": "fishbone-6m.json",
       "description": "ผังก้างปลา 6M มาตรฐานสากล (Man/Machine/Method/Material/Measurement/Environment)"
-    },
-    {
-      "id": "logicmodel-3e",
-      "type": "logicmodel",
-      "name": "Logic Model + 3Es",
-      "file": "logicmodel-3e.json",
-      "description": "วัตถุประสงค์ + 5 คอลัมน์ + ช่องตัวชี้วัดรายขั้น สอดคล้องกรอบ 3E (Economy/Efficiency/Effectiveness)"
-    },
-    {
-      "id": "findings-audit",
-      "type": "findings",
-      "name": "ตารางข้อตรวจพบ",
-      "file": "findings-audit.json",
-      "description": "5 แถวมาตรฐาน: เกณฑ์ / สภาพที่พบ / สาเหตุ / ผลกระทบ / ข้อเสนอแนะ — รูปแบบตารางพร้อมใส่รายงาน"
     }
   ]
 }

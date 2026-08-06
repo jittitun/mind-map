@@ -24,7 +24,7 @@ export function createEmptyMindmap(title = 'หัวข้อหลัก') {
     },
     columns: [],
     links: [],
-    themeMode: 'screen',
+    themeMode: 'print',
   };
 }
 
@@ -95,6 +95,7 @@ export class DocumentStore extends EventTarget {
     let id = genId();
     while (this.doc.nodes[id]) id = genId();
     this.doc.nodes[id] = { text, parent: n.parent, order: n.order + 0.5, collapsed: false, locked: false, note: '', style: {} };
+    if (n.side) this.doc.nodes[id].side = n.side; // พี่น้องของกิ่งฝั่งซ้ายต้องอยู่ฝั่งซ้ายด้วย
     this._normalizeOrder(n.parent);
     this._commit();
     return id;
@@ -158,6 +159,15 @@ export class DocumentStore extends EventTarget {
     const n = this.doc.nodes[id];
     if (!n || this.getChildren(id).length === 0) return;
     n.collapsed = !n.collapsed;
+    this._commit();
+  }
+
+  // ฝั่งที่กิ่งระดับแรกของ mindmap กางออก ('left' = ซ้าย, ไม่ตั้งค่า = ขวา)
+  setNodeSide(id, side) {
+    const n = this.doc.nodes[id];
+    if (!n) return;
+    if (side === 'left') n.side = 'left';
+    else delete n.side;
     this._commit();
   }
 

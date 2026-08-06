@@ -129,7 +129,7 @@ export function markdownToDoc(markdown, type = 'mindmap') {
     nodes,
     columns: [],
     links: [],
-    themeMode: 'screen',
+    themeMode: 'print',
   };
 }
 

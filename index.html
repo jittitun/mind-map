@@ -9,8 +9,8 @@
       margin: 0;
       height: 100%;
       overflow: hidden;
-      background: var(--color-background, #040f1c);
-      color: var(--color-text, #ffffff);
+      background: var(--color-background, #ffffff);
+      color: var(--color-text, #040f1c);
       font-family: var(--font-body, sans-serif);
     }
 
@@ -27,7 +27,7 @@
       flex-wrap: wrap;
       gap: 6px;
       max-width: calc(100vw - 24px);
-      background: var(--color-surface, #071d33);
+      background: var(--color-surface, #f5f5f5);
       padding: 6px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
@@ -35,39 +35,39 @@
     .dp-toolbar button {
       font-family: var(--font-body);
       background: transparent;
-      color: var(--color-text, #fff);
-      border: 1px solid var(--color-line, #5c7a9e);
+      color: var(--color-text, #040f1c);
+      border: 1px solid var(--color-line, #8a8a8a);
       border-radius: 6px;
       padding: 6px 10px;
       cursor: pointer;
       font-size: 13px;
     }
-    .dp-toolbar button:hover { background: var(--color-accent, #c9a227); color: #111; }
+    .dp-toolbar button:hover { background: var(--color-accent, #96791d); color: var(--color-accent-contrast, #ffffff); }
 
     .dp-node rect {
-      fill: var(--color-surface, #071d33);
-      stroke: var(--color-line, #5c7a9e);
+      fill: var(--color-surface, #f5f5f5);
+      stroke: var(--color-line, #8a8a8a);
       stroke-width: 1.5px;
     }
     .dp-node text {
-      fill: var(--color-text, #fff);
+      fill: var(--color-text, #040f1c);
       font-family: var(--font-body);
       font-size: 16px;
       user-select: none;
     }
-    .dp-node.is-selected rect { stroke: var(--color-accent, #c9a227); stroke-width: 3px; }
+    .dp-node.is-selected rect { stroke: var(--color-accent, #96791d); stroke-width: 3px; }
     .dp-node.is-locked rect { stroke-dasharray: 4 3; }
     .dp-node.is-dragging { opacity: 0.6; cursor: grabbing; }
-    .dp-node.is-drop-target rect { stroke: var(--color-accent, #c9a227); stroke-width: 3px; }
+    .dp-node.is-drop-target rect { stroke: var(--color-accent, #96791d); stroke-width: 3px; }
     .dp-node.is-blocked rect { stroke: #e05252; stroke-width: 3px; transition: stroke 0.1s; }
     .dp-node.is-root rect { stroke-width: 2.5px; }
-    .dp-node.is-header rect { fill: var(--color-accent, #c9a227); stroke: none; }
-    .dp-node.is-header text { fill: #111; font-weight: 600; }
-    .dp-toggle { fill: var(--color-accent, #c9a227); cursor: pointer; }
-    .dp-edge { fill: none; stroke: var(--color-line, #5c7a9e); stroke-width: 2px; }
+    .dp-node.is-header rect { fill: var(--color-accent, #96791d); stroke: none; }
+    .dp-node.is-header text { fill: var(--color-accent-contrast, #ffffff); font-weight: 600; }
+    .dp-toggle { fill: var(--color-accent, #96791d); cursor: pointer; }
+    .dp-edge { fill: none; stroke: var(--color-line, #8a8a8a); stroke-width: 2px; }
     .dp-edge.dp-spine { stroke-width: 3px; }
     .dp-edge.dp-row-rule { stroke-width: 1px; opacity: 0.45; }
-    .dp-edge.dp-link { stroke: var(--color-accent, #c9a227); marker-end: url(#dp-arrowhead); }
+    .dp-edge.dp-link { stroke: var(--color-accent, #96791d); marker-end: url(#dp-arrowhead); }
     .dp-edge.dp-risk-link { stroke-dasharray: 6 5; stroke-width: 2px; }
     .dp-node.is-risk rect { stroke-dasharray: 6 5; stroke-width: 2px; }
     .dp-badge-label { font-size: 11px; font-weight: 600; fill: #111; font-family: var(--font-body); user-select: none; }
@@ -82,8 +82,8 @@
       z-index: 100;
     }
     .dp-modal {
-      background: var(--color-surface, #071d33);
-      color: var(--color-text, #fff);
+      background: var(--color-surface, #f5f5f5);
+      color: var(--color-text, #040f1c);
       font-family: var(--font-body);
       border-radius: 10px;
       padding: 20px;
@@ -101,9 +101,9 @@
       width: 100%;
       box-sizing: border-box;
       margin-top: 4px;
-      background: var(--color-background, #040f1c);
-      color: var(--color-text, #fff);
-      border: 1px solid var(--color-line, #5c7a9e);
+      background: var(--color-background, #ffffff);
+      color: var(--color-text, #040f1c);
+      border: 1px solid var(--color-line, #8a8a8a);
       border-radius: 6px;
       padding: 6px 8px;
       font-family: var(--font-body);
@@ -116,23 +116,23 @@
       align-items: flex-start;
       gap: 2px;
       text-align: left;
-      background: var(--color-background, #040f1c);
-      color: var(--color-text, #fff);
-      border: 1px solid var(--color-line, #5c7a9e);
+      background: var(--color-background, #ffffff);
+      color: var(--color-text, #040f1c);
+      border: 1px solid var(--color-line, #8a8a8a);
       border-radius: 6px;
       padding: 8px 10px;
       cursor: pointer;
       font-family: var(--font-body);
     }
-    .dp-modal-item:hover { border-color: var(--color-accent, #c9a227); }
+    .dp-modal-item:hover { border-color: var(--color-accent, #96791d); }
     .dp-modal-item span { font-size: 12px; opacity: 0.8; }
     .dp-preset-label { font-size: 12px; opacity: 0.75; }
     .dp-preset-row { display: flex; flex-wrap: wrap; gap: 6px; }
     .dp-preset-chip {
       font-family: var(--font-body);
-      background: var(--color-background, #040f1c);
-      color: var(--color-text, #fff);
-      border: 1px solid var(--color-line, #5c7a9e);
+      background: var(--color-background, #ffffff);
+      color: var(--color-text, #040f1c);
+      border: 1px solid var(--color-line, #8a8a8a);
       border-left-width: 4px;
       border-radius: 6px;
       padding: 6px 10px;
@@ -140,20 +140,20 @@
       font-size: 12px;
       text-align: left;
     }
-    .dp-preset-chip:hover { background: rgba(255, 255, 255, 0.08); }
+    .dp-preset-chip:hover { background: rgba(128, 128, 128, 0.15); }
 
     .dp-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
     .dp-modal button, .dp-modal-cancel {
       font-family: var(--font-body);
       background: transparent;
-      color: var(--color-text, #fff);
-      border: 1px solid var(--color-line, #5c7a9e);
+      color: var(--color-text, #040f1c);
+      border: 1px solid var(--color-line, #8a8a8a);
       border-radius: 6px;
       padding: 6px 12px;
       cursor: pointer;
       font-size: 13px;
     }
-    .dp-modal-actions button:last-child { background: var(--color-accent, #c9a227); color: #111; border-color: transparent; }
+    .dp-modal-actions button:last-child { background: var(--color-accent, #96791d); color: var(--color-accent-contrast, #ffffff); border-color: transparent; }
 
     .dp-outline {
       position: fixed;
@@ -162,7 +162,7 @@
       bottom: 12px;
       width: 280px;
       z-index: 9;
-      background: var(--color-surface, #071d33);
+      background: var(--color-surface, #f5f5f5);
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
       display: flex;
@@ -174,16 +174,16 @@
       align-items: center;
       gap: 6px;
       padding: 8px;
-      border-bottom: 1px solid var(--color-line, #5c7a9e);
-      color: var(--color-text, #fff);
+      border-bottom: 1px solid var(--color-line, #8a8a8a);
+      color: var(--color-text, #040f1c);
       font-family: var(--font-body);
     }
     .dp-outline-header strong { flex: 1; font-size: 13px; }
     .dp-outline-header button {
       font-family: var(--font-body);
       background: transparent;
-      color: var(--color-text, #fff);
-      border: 1px solid var(--color-line, #5c7a9e);
+      color: var(--color-text, #040f1c);
+      border: 1px solid var(--color-line, #8a8a8a);
       border-radius: 6px;
       padding: 4px 8px;
       cursor: pointer;
@@ -199,9 +199,9 @@
       cursor: pointer;
       font-family: var(--font-body);
       font-size: 13px;
-      color: var(--color-text, #fff);
+      color: var(--color-text, #040f1c);
     }
-    .dp-outline-row:hover { background: rgba(255, 255, 255, 0.06); }
+    .dp-outline-row:hover { background: rgba(128, 128, 128, 0.15); }
     .dp-outline-row.is-selected { background: rgba(201, 162, 39, 0.2); }
     .dp-outline-text { outline: none; flex: 1; }
 
@@ -212,7 +212,7 @@
       position: fixed;
       bottom: 12px;
       right: 16px;
-      color: var(--color-line, #5c7a9e);
+      color: var(--color-line, #8a8a8a);
       font-family: var(--font-body);
       font-size: 12px;
       opacity: 0.7;
@@ -225,8 +225,8 @@
       box-sizing: border-box;
       outline: none;
       border: none;
-      background: var(--color-background, #040f1c);
-      color: var(--color-text, #fff);
+      background: var(--color-background, #ffffff);
+      color: var(--color-text, #040f1c);
       font-family: var(--font-body);
       font-size: 16px;
       padding: 4px 8px;
@@ -257,6 +257,7 @@
     import { RISK_KINDS } from './src/diagrams/logicmodel.js';
     import { loadTemplateIndex, loadTemplateDoc, buildTemplateDoc } from './src/ui/templates.js';
     import { askWhy as askWhyOnFishbone } from './src/diagrams/fishbone.js';
+    import { switchSide as switchMindmapSide } from './src/diagrams/mindmap.js';
     import { exportPngFile, exportSvgFile } from './src/export/png.js';
     import { copyDiagramToClipboard } from './src/export/clipboard.js';
     import { exportPdfFile } from './src/export/pdf.js';
@@ -347,7 +348,7 @@
       if (presenting && selection.selectedId) canvas.centerOnNode(selection.selectedId, { zoom: 1.3, duration: 450 });
     });
 
-    applyTheme(store.doc.themeMode || 'screen');
+    applyTheme(store.doc.themeMode || 'print');
     selection.select(store.getInitialSelection());
 
     function resetDocument(doc) {
@@ -355,7 +356,7 @@
       store.replaceDocument(doc);
       history.init(store.doc);
       selection.select(store.getInitialSelection());
-      applyTheme(store.doc.themeMode || 'screen');
+      applyTheme(store.doc.themeMode || 'print');
     }
 
     attachKeyboard(store, selection, {
@@ -409,6 +410,19 @@
         if (!result) return;
         const riskId = store.addRisk(id, result.kind, result.text);
         if (riskId && !result.text) selection.startEditing(riskId);
+      },
+      switchSide() {
+        if (store.doc.type !== 'mindmap') {
+          alert('สลับข้างกิ่ง ใช้ได้เฉพาะ mindmap');
+          return;
+        }
+        const id = selection.selectedId;
+        if (!id) {
+          alert('เลือกกิ่งที่ต้องการย้ายข้าง หรือเลือกหัวข้อหลักเพื่อเพิ่มกิ่งทางซ้าย');
+          return;
+        }
+        const result = switchMindmapSide(store, id);
+        if (result?.action === 'added') selection.startEditing(result.id);
       },
       askWhy() {
         if (store.doc.type !== 'fishbone') {

@@ -146,19 +146,17 @@ export function computeLayout(store) {
 
   const clusters = categories.map((catId) => planCluster(store, catId));
 
-  // วางจุดเกาะสันหลังของแต่ละหมวด: ฝั่งบน/ล่างสลับกัน แต่ละฝั่งเรียงต่อกันไม่ให้ทับ
-  let cursorTop = 0;
-  let cursorBottom = 0;
+  // วางจุดเกาะสันหลังของแต่ละหมวด: ฝั่งบน/ล่างสลับกัน แต่ใช้ cursor เดียวร่วมกันทั้งสองฝั่ง
+  // (เดิมแยก cursor ต่อฝั่ง — พอฝั่งหนึ่งกว้างขึ้นเพราะไล่ Why ยาว ก้างอีกฝั่งจะค้างอยู่ซ้ายจนดูหลุดกันเป็นคนละผัง)
+  let cursor = 0;
   let maxAttachX = 0;
   let minBoxX = 0;
 
   clusters.forEach((cluster, i) => {
     const top = i % 2 === 0;
     const side = top ? -1 : 1;
-    const cursor = top ? cursorTop : cursorBottom;
     const attachX = cursor + cluster.leftExtent;
-    if (top) cursorTop = attachX + cluster.rightExtent + CLUSTER_GAP;
-    else cursorBottom = attachX + cluster.rightExtent + CLUSTER_GAP;
+    cursor = attachX + cluster.rightExtent + CLUSTER_GAP;
     maxAttachX = Math.max(maxAttachX, attachX);
 
     // สาเหตุชั้นแรก + ลูกหลาน
