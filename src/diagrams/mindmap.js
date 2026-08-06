@@ -236,11 +236,14 @@ function buildTreeBlock(store, id, ctx, childIdsOverride) {
     const block = listBlocks.get(nid);
     const w = block ? block.w : ctx.size(nid).width;
     const h = block ? block.h : ctx.size(nid).height;
-    rel.push({ id: nid, x: n.y, y: n.x, block });
+    // flextree คืน n.x เป็น "จุดกึ่งกลาง" ช่องที่จัดให้ ไม่ใช่ขอบบน
+    // ต้องลบครึ่งความสูงเองเพื่อให้กล่อง/บล็อกอยู่กลางช่องพอดี ไม่งั้นกล่องที่สูงไม่เท่ากันจะซ้อนกัน
+    const top = n.x - h / 2;
+    rel.push({ id: nid, x: n.y, y: top, block });
     minX = Math.min(minX, n.y);
-    minY = Math.min(minY, n.x);
+    minY = Math.min(minY, top);
     maxX = Math.max(maxX, n.y + w);
-    maxY = Math.max(maxY, n.x + h);
+    maxY = Math.max(maxY, top + h);
   });
 
   const rootEntry = rel.find((e) => e.id === id);

@@ -81,7 +81,9 @@ function layoutSubtree(store, rootChildId) {
   tree.each((n) => {
     const s = sizes.get(n.data.id);
     const x = -n.y - s.width;
-    const y = n.x;
+    // flextree คืน n.x เป็น "จุดกึ่งกลาง" ช่องที่จัดให้ ไม่ใช่ขอบบน
+    // ต้องลบครึ่งความสูงเองเพื่อให้กล่องอยู่กลางช่องพอดี ไม่งั้นกล่องที่สูงไม่เท่ากันจะเบียดกันจนซ้อน
+    const y = n.x - s.height / 2;
     // สาเหตุชั้นแรก (ลูกของหมวด) คือ "สิ่งที่พบ" ยังไม่ใช่คำตอบของคำถามทำไม จึงไม่นับ
     // ชั้นถัดไปคือ Why 1 แล้วไล่ต่อ — ไล่ครบ 5 ครั้งจะได้ W5 พอดีตามหลัก 5 Whys
     rel.set(n.data.id, { x, y, width: s.width, height: s.height, lines: s.lines, whyLevel: n.depth });
