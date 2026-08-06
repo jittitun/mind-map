@@ -96,6 +96,7 @@ export class DocumentStore extends EventTarget {
     while (this.doc.nodes[id]) id = genId();
     this.doc.nodes[id] = { text, parent: n.parent, order: n.order + 0.5, collapsed: false, locked: false, note: '', style: {} };
     if (n.side) this.doc.nodes[id].side = n.side; // พี่น้องของกิ่งฝั่งซ้ายต้องอยู่ฝั่งซ้ายด้วย
+    if (n.listItem) this.doc.nodes[id].listItem = true; // กด Enter ต่อจากข้อย่อย ได้ข้อย่อยตัวถัดไปเลย
     this._normalizeOrder(n.parent);
     this._commit();
     return id;
@@ -168,6 +169,16 @@ export class DocumentStore extends EventTarget {
     if (!n) return;
     if (side === 'left') n.side = 'left';
     else delete n.side;
+    this._commit();
+  }
+
+  // กล่องนี้เป็น "ข้อย่อย" ที่ห้อยเรียงลงใต้กล่องพ่อไหม (พี่น้องที่ไม่ตั้งค่ายังกางออกด้านข้างตามปกติ)
+  // ตั้งที่ลูกแต่ละตัว ไม่ใช่ที่พ่อ — เพราะกล่องเดียวต้องมีได้ทั้งลูกโซ่แนวนอนและข้อย่อยเรียงลงพร้อมกัน
+  setListItem(id, isListItem) {
+    const n = this.doc.nodes[id];
+    if (!n) return;
+    if (isListItem) n.listItem = true;
+    else delete n.listItem;
     this._commit();
   }
 

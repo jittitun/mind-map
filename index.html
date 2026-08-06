@@ -257,7 +257,7 @@
     import { RISK_KINDS } from './src/diagrams/logicmodel.js';
     import { loadTemplateIndex, loadTemplateDoc, buildTemplateDoc } from './src/ui/templates.js';
     import { askWhy as askWhyOnFishbone } from './src/diagrams/fishbone.js';
-    import { switchSide as switchMindmapSide } from './src/diagrams/mindmap.js';
+    import { switchSide as switchMindmapSide, switchListItem as switchMindmapListItem } from './src/diagrams/mindmap.js';
     import { exportPngFile, exportSvgFile } from './src/export/png.js';
     import { copyDiagramToClipboard } from './src/export/clipboard.js';
     import { exportPdfFile } from './src/export/pdf.js';
@@ -423,6 +423,20 @@
         }
         const result = switchMindmapSide(store, id);
         if (result?.action === 'added') selection.startEditing(result.id);
+      },
+      switchListItem() {
+        if (store.doc.type !== 'mindmap') {
+          alert('ข้อย่อยเรียงลง ใช้ได้เฉพาะ mindmap');
+          return;
+        }
+        const id = selection.selectedId;
+        if (!id) {
+          alert('เลือกกล่องที่ต้องการทำเป็นข้อย่อยก่อน');
+          return;
+        }
+        if (switchMindmapListItem(store, id) === null) {
+          alert('หัวข้อหลักและกิ่งระดับแรกทำเป็นข้อย่อยไม่ได้ — เลือกกล่องที่ลึกกว่านั้น');
+        }
       },
       askWhy() {
         if (store.doc.type !== 'fishbone') {

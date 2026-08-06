@@ -117,9 +117,15 @@ export function renderNodeBox(store, selection, id, pos, handlers, extraClass = 
 
   if (pos.hasChildren) {
     const toggle = document.createElementNS(NS, 'circle');
-    // กิ่งฝั่งซ้ายกางออกทางซ้าย ปุ่มพับ/กางจึงต้องอยู่ขอบซ้ายให้ตรงทิศที่กิ่งยื่นออกไป
-    toggle.setAttribute('cx', pos.toggleOnLeft ? 0 : pos.width);
-    toggle.setAttribute('cy', pos.height / 2);
+    // ปุ่มพับ/กางต้องอยู่ตรงทิศที่ลูกยื่นออกไป: โหมด list ลูกอยู่ใต้กล่อง,
+    // กิ่งฝั่งซ้ายยื่นไปทางซ้าย, ที่เหลือยื่นไปทางขวา
+    if (pos.toggleAtBottom) {
+      toggle.setAttribute('cx', pos.width / 2);
+      toggle.setAttribute('cy', pos.height);
+    } else {
+      toggle.setAttribute('cx', pos.toggleOnLeft ? 0 : pos.width);
+      toggle.setAttribute('cy', pos.height / 2);
+    }
     toggle.setAttribute('r', 6);
     toggle.setAttribute('class', 'dp-toggle');
     toggle.addEventListener('mousedown', (e) => e.stopPropagation());
