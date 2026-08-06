@@ -253,10 +253,8 @@
     import { attachKeyboard } from './src/core/keyboard.js';
     import { createToolbar } from './src/ui/toolbar.js';
     import { applyTheme } from './src/ui/theme.js';
-    import { showTemplateGallery, showSaveAsTemplateForm, showHint, showSearchDialog, showRiskFlagForm } from './src/ui/dialogs.js';
-    import { RISK_KINDS } from './src/diagrams/logicmodel.js';
+    import { showTemplateGallery, showSaveAsTemplateForm, showHint, showSearchDialog } from './src/ui/dialogs.js';
     import { loadTemplateIndex, loadTemplateDoc, buildTemplateDoc } from './src/ui/templates.js';
-    import { askWhy as askWhyOnFishbone } from './src/diagrams/fishbone.js';
     import { switchSide as switchMindmapSide, switchListItem as switchMindmapListItem } from './src/diagrams/mindmap.js';
     import { exportPngFile, exportSvgFile } from './src/export/png.js';
     import { copyDiagramToClipboard } from './src/export/clipboard.js';
@@ -394,23 +392,6 @@
       toggleLock() {
         if (selection.selectedId) store.toggleLock(selection.selectedId);
       },
-      async flagRisk() {
-        if (store.doc.type !== 'logicmodel') {
-          alert('ปักธง 3E ใช้ได้เฉพาะแผนผัง Logic Model');
-          return;
-        }
-        const id = selection.selectedId;
-        const node = id && store.getNode(id);
-        if (!node || node.isColumnHeader || node.riskOf) {
-          alert('เลือกการ์ดปัจจัยในคอลัมน์ก่อน (ไม่ใช่หัวคอลัมน์หรือกล่องความเสี่ยง)');
-          return;
-        }
-        const used = store.getRisksOf(id).map((r) => r.kind);
-        const result = await showRiskFlagForm(RISK_KINDS, used);
-        if (!result) return;
-        const riskId = store.addRisk(id, result.kind, result.text);
-        if (riskId && !result.text) selection.startEditing(riskId);
-      },
       switchSide() {
         if (store.doc.type !== 'mindmap') {
           alert('สลับข้างกิ่ง ใช้ได้เฉพาะ mindmap');
@@ -437,20 +418,6 @@
         if (switchMindmapListItem(store, id) === null) {
           alert('หัวข้อหลักและกิ่งระดับแรกทำเป็นข้อย่อยไม่ได้ — เลือกกล่องที่ลึกกว่านั้น');
         }
-      },
-      askWhy() {
-        if (store.doc.type !== 'fishbone') {
-          alert('ถาม Why ต่อ ใช้ได้เฉพาะผังก้างปลา');
-          return;
-        }
-        const id = selection.selectedId;
-        if (!id) {
-          alert('เลือกกล่องสาเหตุที่ต้องการไล่ต่อก่อน');
-          return;
-        }
-        const newId = askWhyOnFishbone(store, id);
-        if (newId) selection.startEditing(newId);
-        else alert('เลือกกล่องหมวดหรือกล่องสาเหตุ (ไม่ใช่หัวปลา) เพื่อไล่สาเหตุต่อ');
       },
       async openFile() {
         try {
