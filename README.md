@@ -7,4 +7,4 @@ Web app แบบ client-side ล้วน สำหรับสร้างแ�
 - แผนพัฒนาฉบับเต็ม: [docs/PLAN.md](docs/PLAN.md)
 - กติกาโปรเจกต์สำหรับ Claude Code: [CLAUDE.md](CLAUDE.md)
 
-สถานะ: Phase 0 — เตรียมโครง
+สถานะ: Phase 3 (Polish & Present) — เสร็จ MVP แล้ว
